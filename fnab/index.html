@@ -1,36 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>FNAB – Night 1</title>
+  <meta charset="UTF-8">
+  <title>FNAB TEST</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
 </head>
+<body style="margin:0;background:black;color:white;font-family:monospace;">
 
-<body>
+<h1>FNAB LOADED ✅</h1>
 
-<div id="hud">
-  <span id="time">12:00 AM</span>
-  <span id="power">Power: 100%</span>
-</div>
+<img
+  src="https://i.postimg.cc/kggq0tQY/no-Filter.webp"
+  style="width:100vw;height:100vh;object-fit:cover;"
+  onerror="this.style.display='none';document.body.innerHTML+='<p>IMAGE FAILED</p>';"
+>
 
-<div id="office">
-  <img id="office-img"
-       src="https://i.postimg.cc/kggq0tQY/no-Filter.webp"
-       alt="Office">
-</div>
+<script>
+  console.log("JS RUNNING");
+  alert("FNAB SCRIPT RUNNING");
+</script>
 
-<button id="camBtn">CAMS</button>
-
-<div id="cams" class="hidden">
-  <h2 id="camName"></h2>
-  <img id="camImg" />
-  <div class="cam-controls">
-    <button id="prevCam">◀</button>
-    <button id="nextCam">▶</button>
-  </div>
-</div>
-
-<script src="game.js"></script>
 </body>
 </html>
