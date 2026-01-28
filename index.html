@@ -1,636 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>FNAB: ULTIMATE CUSTOM NIGHT</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+    <meta charset="UTF-8">
+    <title>FNAB 3D: THE OVERCOOKED EDITION</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', Courier, monospace; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        #hud { position: absolute; top: 20px; right: 20px; color: #fff; text-align: right; font-size: 24px; text-shadow: 2px 2px #000; }
+        
+        /* Camera Monitor */
+        #monitor { 
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 400px; height: 40px; background: rgba(50,50,50,0.8);
+            border: 2px solid #666; color: #fff; cursor: pointer; pointer-events: auto;
+            display: flex; justify-content: center; align-items: center; transition: 0.3s;
+        }
+        #monitor:hover { background: #444; height: 60px; }
 
-  :root {
-    --bg-color: #050505;
-    --hud-color: #cecece;
-    --danger: #ff0000;
-    --door-metal: #2a2a2a;
-  }
+        #cctv-ui {
+            display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.4);
+            pointer-events: auto; z-index: 20;
+        }
+        .cam-map { position: absolute; bottom: 50px; right: 50px; width: 200px; height: 150px; background: rgba(0,255,0,0.1); border: 2px solid #0f0; }
+        .cam-btn { width: 50px; height: 30px; background: #000; color: #0f0; border: 1px solid #0f0; cursor: pointer; margin: 5px; }
 
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    background: black;
-    color: var(--hud-color);
-    font-family: 'VT323', monospace;
-    overflow: hidden;
-    user-select: none;
-    -webkit-user-select: none;
-    height: 100vh;
-    width: 100vw;
-  }
-
-  /* --- THE OFFICE (pseudo-3D) --- */
-  #office-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: url('https://i.postimg.cc/kggq0tQY/no-Filter.webp') no-repeat center center;
-    background-size: cover;
-    transition: background-position 0.2s;
-  }
-
-  /* Vignette & Atmosphere */
-  #office-overlay {
-    position: absolute;
-    inset: 0;
-    box-shadow: inset 0 0 150px black, inset 0 0 50px black;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  /* --- DOORS (Left & Right) --- */
-  .door-frame {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 15%; /* Width of the door frame */
-    background: linear-gradient(90deg, #111, #000);
-    z-index: 5;
-    border-right: 4px solid #333;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #door-left { left: 0; border-right: 4px solid #333; }
-  #door-right { right: 0; border-left: 4px solid #333; border-right: none; }
-
-  /* The actual sliding metal door */
-  .metal-gate {
-    position: absolute;
-    top: -100%;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(
-      0deg,
-      #1a1a1a,
-      #1a1a1a 20px,
-      #222 20px,
-      #222 40px
-    );
-    transition: top 0.2s ease-in;
-    z-index: 4;
-    box-shadow: 0 10px 20px black;
-  }
-  .metal-gate.closed { top: 0; }
-
-  /* Blind Spot Lighting (Visual Feedback) */
-  .blind-spot {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 300px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s;
-    z-index: 3;
-    mix-blend-mode: overlay;
-  }
-  #spot-left { left: 0; background: linear-gradient(90deg, rgba(255,255,255,0.6), transparent); }
-  #spot-right { right: 0; background: linear-gradient(-90deg, rgba(255,255,255,0.6), transparent); }
-
-  /* --- BUTTON PANELS --- */
-  .control-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 10px;
-    z-index: 10;
-  }
-
-  .ctrl-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 3px solid #555;
-    background: #222;
-    color: white;
-    font-family: 'VT323';
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 5px 10px black;
-    text-align: center;
-    line-height: 55px;
-    transition: 0.1s;
-  }
-  .ctrl-btn:active { transform: scale(0.95); }
-  
-  .btn-door.active { background: #ff3333; border-color: #880000; box-shadow: 0 0 15px #ff0000; }
-  .btn-light.active { background: #ffffff; color: black; box-shadow: 0 0 20px white; }
-
-  /* --- HUD --- */
-  #hud-top {
-    position: absolute;
-    top: 20px; right: 20px;
-    text-align: right;
-    z-index: 20;
-    font-size: 1.8rem;
-    text-shadow: 2px 2px 0 black;
-  }
-  .power-usage {
-    font-size: 1rem;
-    margin-top: 5px;
-    color: #888;
-  }
-  .usage-bar { display: inline-block; width: 15px; height: 8px; background: #444; margin-right: 2px; }
-  .usage-bar.lit { background: #0f0; }
-  .usage-bar.lit-high { background: #f00; }
-
-  /* --- MONITOR SYSTEM --- */
-  #monitor-trigger {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40%;
-    max-width: 300px;
-    padding: 10px;
-    background: rgba(255,255,255,0.1);
-    border: 2px solid white;
-    color: white;
-    font-family: 'VT323';
-    font-size: 1.5rem;
-    cursor: pointer;
-    z-index: 20;
-    text-align: center;
-  }
-  #monitor-trigger:hover { background: rgba(255,255,255,0.2); }
-
-  #cctv-layer {
-    display: none;
-    position: absolute;
-    inset: 0;
-    background: black;
-    z-index: 50;
-  }
-
-  #cctv-feed {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.5;
-  }
-
-  /* The Static Effect */
-  #static-noise {
-    position: absolute;
-    inset: 0;
-    background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif');
-    opacity: 0.2;
-    pointer-events: none;
-    mix-blend-mode: screen;
-  }
-
-  /* CAMERA MAP UI */
-  #map-container {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 300px;
-    height: 250px;
-    background: rgba(0,20,0,0.9);
-    border: 2px solid #0f0;
-    z-index: 60;
-    padding: 10px;
-  }
-
-  .map-btn {
-    position: absolute;
-    width: 60px;
-    height: 40px;
-    background: #003300;
-    border: 1px solid #0f0;
-    color: #0f0;
-    font-family: 'VT323';
-    cursor: pointer;
-    font-size: 1.1rem;
-  }
-  .map-btn.active { background: #0f0; color: black; font-weight: bold; }
-  
-  /* Positions for Map Buttons to look like a layout */
-  #btn-cam1 { bottom: 10px; left: 120px; } /* Stage */
-  #btn-cam2 { top: 80px; left: 20px; }   /* Left Hall */
-  #btn-cam3 { top: 80px; right: 20px; }  /* Right Hall */
-  #btn-cam4 { bottom: 10px; left: 20px; } /* Kitchen */
-
-  /* RADAR DOTS */
-  .radar-dot {
-    width: 12px; height: 12px;
-    background: red;
-    border-radius: 50%;
-    position: absolute;
-    top: -5px; right: -5px;
-    box-shadow: 0 0 5px red;
-    animation: pulse 0.5s infinite alternate;
-    display: none; /* Hidden unless logic shows it */
-  }
-
-  /* JUMPSCARE */
-  #jumpscare-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: black;
-    z-index: 100;
-    justify-content: center;
-    align-items: center;
-  }
-  #jumpscare-img { width: 100%; height: 100%; object-fit: cover; }
-
-  @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; transform: scale(1.2); } }
-  @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-
-  /* Mobile Tweaks */
-  @media (max-width: 600px) {
-    .door-frame { width: 60px; }
-    .ctrl-btn { width: 45px; height: 45px; font-size: 1rem; line-height: 40px; }
-    #map-container { width: 200px; height: 150px; }
-    .map-btn { width: 50px; height: 30px; font-size: 0.8rem; }
-    #btn-cam1 { left: 75px; }
-  }
-</style>
+        canvas { display: block; }
+    </style>
 </head>
 <body>
 
-<div id="office-container">
-  
-  <div id="door-left" class="door-frame">
-    <div class="metal-gate" id="gate-left"></div>
-    <div class="control-panel">
-      <div class="ctrl-btn btn-door" onclick="toggleDoor('left')">DOOR</div>
-      <div class="ctrl-btn btn-light" onmousedown="toggleLight('left', true)" onmouseup="toggleLight('left', false)" ontouchstart="toggleLight('left', true)" ontouchend="toggleLight('left', false)">LGT</div>
+<div id="ui-layer">
+    <div id="hud">
+        <div id="time">12:00 AM</div>
+        <div id="power">POWER: 100%</div>
     </div>
-  </div>
-  <div id="spot-left" class="blind-spot"></div>
+    
+    <div id="monitor" onclick="toggleCCTV()">REBOOT MONITOR</div>
 
-  <div id="door-right" class="door-frame">
-    <div class="metal-gate" id="gate-right"></div>
-    <div class="control-panel">
-      <div class="ctrl-btn btn-door" onclick="toggleDoor('right')">DOOR</div>
-      <div class="ctrl-btn btn-light" onmousedown="toggleLight('right', true)" onmouseup="toggleLight('right', false)" ontouchstart="toggleLight('right', true)" ontouchend="toggleLight('right', false)">LGT</div>
+    <div id="cctv-ui">
+        <div style="color:#0f0; padding:20px; font-size:20px;">CAM 01 - MAIN HALL</div>
+        <div class="cam-map">
+            <button class="cam-btn" onclick="switchCam(0)">C1</button>
+            <button class="cam-btn" onclick="switchCam(1)">C2</button>
+        </div>
     </div>
-  </div>
-  <div id="spot-right" class="blind-spot"></div>
-
-  <div id="office-overlay"></div>
-
-  <div id="hud-top">
-    <div id="clock">12:00 AM</div>
-    <div id="power">Power: 100%</div>
-    <div class="power-usage">
-      USAGE: 
-      <span class="usage-bar lit"></span>
-      <span class="usage-bar" id="use-2"></span>
-      <span class="usage-bar" id="use-3"></span>
-      <span class="usage-bar" id="use-4"></span>
-      <span class="usage-bar" id="use-5"></span>
-    </div>
-  </div>
-
-  <div id="monitor-trigger" onclick="toggleMonitor()">
-    <span id="monitor-text">RAISE MONITOR</span>
-  </div>
-
 </div>
 
-<div id="cctv-layer">
-  <div id="static-noise"></div>
-  <div style="position:absolute; top:20px; left:20px; color:white; font-size:1.5rem;">
-    🔴 REC <span id="cam-name-display">CAM 1A</span>
-  </div>
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
 
-  <img id="cctv-feed" src="" alt="Camera Feed">
+<script type="module">
+    import * as THREE from 'three';
 
-  <div id="map-container">
-    <div style="text-align:center; color:#0f0; margin-bottom:5px;">RADAR MAP</div>
-    
-    <button class="map-btn active" id="btn-cam1" onclick="changeCam(1)">
-      CAM 1<div class="radar-dot" id="radar-1"></div>
-    </button>
-    
-    <button class="map-btn" id="btn-cam2" onclick="changeCam(2)">
-      CAM 2<div class="radar-dot" id="radar-2"></div>
-    </button>
-    
-    <button class="map-btn" id="btn-cam3" onclick="changeCam(3)">
-      CAM 3<div class="radar-dot" id="radar-3"></div>
-    </button>
-    
-    <button class="map-btn" id="btn-cam4" onclick="changeCam(4)">
-      CAM 4<div class="radar-dot" id="radar-4"></div>
-    </button>
+    // --- GAME STATE ---
+    let power = 100;
+    let time = 0;
+    let cctvActive = false;
+    let leftDoorClosed = false;
+    let rightDoorClosed = false;
 
-  </div>
-</div>
+    // --- THREE.JS SETUP ---
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
 
-<div id="jumpscare-overlay">
-  <img id="jumpscare-img" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ5eW84YnZ4YnZ4YnZ4/xT9IgvEOwRzFnyCjZe/giphy.gif">
-</div>
+    // --- BUILDING THE OFFICE ---
+    // Floor
+    const floorGeo = new THREE.PlaneGeometry(20, 20);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
 
-<script>
-  // --- ASSETS & CONFIG ---
-  const CAMERAS = {
-    1: { name: "Show Stage", img: "https://i.postimg.cc/8zZPcbpB/no-Filter-4.webp" },
-    2: { name: "West Hall", img: "https://i.postimg.cc/50LVB5JN/no-Filter-2.webp" },
-    3: { name: "East Hall", img: "https://i.postimg.cc/QtGLdBT6/no-Filter-3.webp" },
-    4: { name: "Kitchen (Audio Only)", img: "https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif" } // Static for kitchen
-  };
+    // Walls (Front, Left, Right)
+    function createWall(w, h, x, z, ry = 0) {
+        const geo = new THREE.BoxGeometry(w, h, 0.5);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const wall = new THREE.Mesh(geo, mat);
+        wall.position.set(x, h/2, z);
+        wall.rotation.y = ry;
+        wall.castShadow = true;
+        wall.receiveShadow = true;
+        scene.add(wall);
+    }
+    createWall(10, 8, 0, -5); // Front
+    createWall(10, 8, -5, 0, Math.PI / 2); // Left Wall
+    createWall(10, 8, 5, 0, Math.PI / 2); // Right Wall
 
-  // --- GAME STATE ---
-  let game = {
-    time: 0, // 0 to 360 (seconds)
-    power: 100,
-    usage: 1,
-    monitorUp: false,
-    currentCam: 1,
-    leftDoor: false,
-    rightDoor: false,
-    leftLight: false,
-    rightLight: false,
-    gameOver: false
-  };
+    // Doors (Visual Blocks)
+    const doorGeo = new THREE.BoxGeometry(0.2, 8, 4);
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
+    const leftDoorMesh = new THREE.Mesh(doorGeo, doorMat);
+    leftDoorMesh.position.set(-4.8, 12, 0); // Start raised
+    scene.add(leftDoorMesh);
 
-  // --- AI (THE ANIMATRONICS) ---
-  // Locations: 1=Stage, 2=WestHall, 3=EastHall, 4=Kitchen, 5=LeftDoorWait, 6=RightDoorWait
-  let bots = [
-    { name: "Nas", location: 1, path: [1, 2, 5], aggression: 5, moveTimer: 0 },
-    { name: "Mikica", location: 1, path: [1, 3, 6], aggression: 4, moveTimer: 0 },
-    { name: "Lifter", location: 4, path: [4, 2, 3], aggression: 6, moveTimer: 0 }
-  ];
+    // Lights
+    const ambient = new THREE.AmbientLight(0x404040, 0.5); 
+    scene.add(ambient);
 
-  // --- DOM ELEMENTS ---
-  const el = {
-    clock: document.getElementById('clock'),
-    power: document.getElementById('power'),
-    cctv: document.getElementById('cctv-layer'),
-    feed: document.getElementById('cctv-feed'),
-    camTitle: document.getElementById('cam-name-display'),
-    monitorText: document.getElementById('monitor-text'),
-    bars: [
-      document.getElementById('use-2'),
-      document.getElementById('use-3'),
-      document.getElementById('use-4'),
-      document.getElementById('use-5')
-    ]
-  };
+    const deskLight = new THREE.PointLight(0xffffff, 10, 10);
+    deskLight.position.set(0, 3, -2);
+    deskLight.castShadow = true;
+    scene.add(deskLight);
 
-  // --- INITIALIZATION ---
-  changeCam(1);
+    const leftHallLight = new THREE.PointLight(0xff0000, 0, 10); // Red light for left
+    leftHallLight.position.set(-4, 4, 0);
+    scene.add(leftHallLight);
 
-  // --- MAIN LOOPS ---
+    // --- BANANSKI CHARACTER ---
+    const bananskiGeo = new THREE.CylinderGeometry(0.5, 0.5, 3, 32);
+    const bananskiMat = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+    const bananski = new THREE.Mesh(bananskiGeo, bananskiMat);
+    bananski.position.set(-4, 1.5, -8); // Hide him in the dark
+    scene.add(bananski);
 
-  // 1. SYSTEM TICK (Every 1s) - Time & Power
-  setInterval(() => {
-    if (game.gameOver) return;
-    
-    // Time
-    game.time++;
-    let hour = 12 + Math.floor(game.time / 60);
-    if (hour > 12) hour -= 12;
-    if (hour === 0) hour = 12;
-    el.clock.innerText = `${hour}:00 AM`;
-    
-    if (game.time >= 360) winGame();
+    camera.position.set(0, 3, 2);
+    camera.lookAt(0, 2, -5);
 
-    // Power Drain Calculation
-    let drain = 0.1 + (game.usage * 0.15);
-    game.power -= drain;
-    el.power.innerText = `Power: ${Math.floor(game.power)}%`;
-
-    if (game.power <= 0) powerOutage();
-    
-  }, 1000);
-
-  // 2. AI TICK (Every 3s) - Movement Logic
-  setInterval(() => {
-    if (game.gameOver || game.power <= 0) return;
-
-    bots.forEach(bot => {
-      // Roll random chance based on aggression
-      if (Math.random() * 20 < bot.aggression) {
-        moveBot(bot);
-      }
+    // --- CONTROLS & INTERACTION ---
+    window.addEventListener('keydown', (e) => {
+        if(e.key === 'a') toggleDoor('left');
+        if(e.key === 'd') toggleDoor('right');
+        if(e.key === 's') leftHallLight.intensity = leftHallLight.intensity === 0 ? 50 : 0;
     });
-    
-    updateRadar();
-    checkForAttacks();
 
-  }, 3000);
-
-  // --- FUNCTIONS ---
-
-  function moveBot(bot) {
-    // Simple logic: Move to next spot in path, or random
-    // If at end of path (Door), stay there until door check fails
-    
-    let currentIdx = bot.path.indexOf(bot.location);
-    
-    if (currentIdx === -1) {
-      // Reset to start if lost
-      bot.location = bot.path[0];
-    } else if (currentIdx < bot.path.length - 1) {
-      // Advance forward
-      bot.location = bot.path[currentIdx + 1];
-    } else {
-      // At the end of path (The Door). Ready to attack.
-      // 5 = Left Door, 6 = Right Door
-      console.log(`${bot.name} is waiting at the door!`);
-    }
-  }
-
-  function checkForAttacks() {
-    // Check Left Door (Loc 5)
-    let leftThreat = bots.find(b => b.location === 5);
-    if (leftThreat) {
-      if (game.leftDoor) {
-        console.log("Left Door Blocked " + leftThreat.name);
-        leftThreat.location = 1; // Send back to stage
-      } else {
-        // Attack imminent... give them a few seconds? 
-        // For this demo, instant death if they move while at door
-        if (Math.random() > 0.5) jumpscare(leftThreat.name);
-      }
+    function toggleDoor(side) {
+        if(side === 'left') {
+            leftDoorClosed = !leftDoorClosed;
+            leftDoorMesh.position.y = leftDoorClosed ? 4 : 12;
+        }
+        power -= 1;
     }
 
-    // Check Right Door (Loc 6)
-    let rightThreat = bots.find(b => b.location === 6);
-    if (rightThreat) {
-      if (game.rightDoor) {
-        console.log("Right Door Blocked " + rightThreat.name);
-        rightThreat.location = 1; // Send back
-      } else {
-         if (Math.random() > 0.5) jumpscare(rightThreat.name);
-      }
-    }
-  }
+    window.toggleCCTV = () => {
+        cctvActive = !cctvActive;
+        document.getElementById('cctv-ui').style.display = cctvActive ? 'block' : 'none';
+    };
 
-  function updateRadar() {
-    // Hide all dots
-    for(let i=1; i<=4; i++) {
-      let dot = document.getElementById(`radar-${i}`);
-      if(dot) dot.style.display = 'none';
+    // --- ANIMATION LOOP ---
+    function animate() {
+        requestAnimationFrame(animate);
+
+        // Subtly sway camera for "breathing" effect
+        camera.position.x = Math.sin(Date.now() * 0.001) * 0.1;
+        camera.position.y = 3 + Math.cos(Date.now() * 0.001) * 0.05;
+
+        // Bananski AI Logic
+        let timeFactor = Date.now() * 0.0005;
+        if (!cctvActive) {
+            // He moves closer when you aren't looking
+            bananski.position.z += 0.01;
+        }
+
+        if (bananski.position.z > 1 && !leftDoorClosed) {
+            // JUMPSCARE
+            document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%;'>BANANSKI GOT YOU</h1>";
+            setTimeout(() => location.reload(), 2000);
+        } else if (bananski.position.z > 1 && leftDoorClosed) {
+            bananski.position.z = -10; // Reset him
+        }
+
+        renderer.render(scene, camera);
     }
 
-    // Show dots where bots are
-    bots.forEach(bot => {
-      // If location is 5 or 6 (Doors), show them on Cam 2 or 3 respectively
-      let mapLoc = bot.location;
-      if (mapLoc === 5) mapLoc = 2; // Approaching West
-      if (mapLoc === 6) mapLoc = 3; // Approaching East
-      
-      let dot = document.getElementById(`radar-${mapLoc}`);
-      if (dot) dot.style.display = 'block';
+    // --- HUD UPDATES ---
+    setInterval(() => {
+        time++;
+        power -= (leftDoorClosed ? 0.5 : 0.1);
+        document.getElementById('power').innerText = `POWER: ${Math.floor(power)}%`;
+        document.getElementById('time').innerText = `${12 + Math.floor(time/60)}:00 AM`;
+    }, 1000);
+
+    animate();
+
+    // Handle Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
-  }
-
-  // --- PLAYER CONTROLS ---
-
-  function toggleDoor(side) {
-    if (game.power <= 0) return;
-
-    if (side === 'left') {
-      game.leftDoor = !game.leftDoor;
-      let btn = document.querySelector('#door-left .btn-door');
-      let gate = document.getElementById('gate-left');
-      
-      if (game.leftDoor) {
-        btn.classList.add('active');
-        gate.classList.add('closed');
-      } else {
-        btn.classList.remove('active');
-        gate.classList.remove('closed');
-      }
-    } else {
-      game.rightDoor = !game.rightDoor;
-      let btn = document.querySelector('#door-right .btn-door');
-      let gate = document.getElementById('gate-right');
-
-      if (game.rightDoor) {
-        btn.classList.add('active');
-        gate.classList.add('closed');
-      } else {
-        btn.classList.remove('active');
-        gate.classList.remove('closed');
-      }
-    }
-    calcUsage();
-  }
-
-  function toggleLight(side, on) {
-    if (game.power <= 0) return;
-
-    if (side === 'left') {
-      game.leftLight = on;
-      document.getElementById('spot-left').style.opacity = on ? 1 : 0;
-      // Check for jumpscare if animatronic is there? 
-      // In real FNAF you see them in the window. Here we can play a sound cue visually.
-      if (on && bots.find(b => b.location === 5)) {
-        alertVisual("SOMETHING IS AT THE LEFT DOOR!");
-      }
-    } else {
-      game.rightLight = on;
-      document.getElementById('spot-right').style.opacity = on ? 1 : 0;
-      if (on && bots.find(b => b.location === 6)) {
-        alertVisual("SOMETHING IS AT THE RIGHT DOOR!");
-      }
-    }
-    calcUsage();
-  }
-
-  function alertVisual(msg) {
-    // Quick flashing text overlay?
-    console.log(msg); // For now just log
-  }
-
-  function toggleMonitor() {
-    if (game.power <= 0) return;
-    game.monitorUp = !game.monitorUp;
-    el.cctv.style.display = game.monitorUp ? 'block' : 'none';
-    el.monitorText.innerText = game.monitorUp ? "LOWER MONITOR" : "RAISE MONITOR";
-    calcUsage();
-  }
-
-  function changeCam(id) {
-    game.currentCam = id;
-    el.feed.src = CAMERAS[id].img;
-    el.camTitle.innerText = CAMERAS[id].name.toUpperCase();
-    
-    // Update Map Buttons
-    document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`btn-cam${id}`).classList.add('active');
-  }
-
-  function calcUsage() {
-    let u = 1;
-    if (game.leftDoor) u++;
-    if (game.rightDoor) u++;
-    if (game.leftLight) u++;
-    if (game.rightLight) u++;
-    if (game.monitorUp) u++;
-    
-    game.usage = u;
-    
-    // Update bars
-    el.bars.forEach((bar, i) => {
-      if (i < u - 1) {
-        bar.className = "usage-bar lit";
-        if (u > 3) bar.className = "usage-bar lit-high";
-      } else {
-        bar.className = "usage-bar";
-      }
-    });
-  }
-
-  // --- END STATES ---
-
-  function powerOutage() {
-    game.gameOver = true;
-    el.cctv.style.display = 'none';
-    document.getElementById('office-overlay').style.backgroundColor = "black";
-    document.getElementById('office-overlay').style.opacity = "0.9";
-    el.power.innerText = "0%";
-    
-    // Open doors
-    document.querySelectorAll('.metal-gate').forEach(g => g.classList.remove('closed'));
-    
-    setTimeout(() => jumpscare("FREDDY"), 5000);
-  }
-
-  function jumpscare(who) {
-    game.gameOver = true;
-    document.getElementById('jumpscare-overlay').style.display = 'flex';
-    document.body.style.animation = "shake 0.1s infinite";
-    // Play scream sound (if we had audio)
-    setTimeout(() => location.reload(), 2000);
-  }
-
-  function winGame() {
-    game.gameOver = true;
-    alert("6:00 AM! YOU SURVIVED!");
-    location.reload();
-  }
-
-  /* CSS Shake Animation */
-  const style = document.createElement('style');
-  style.innerHTML = `
-    @keyframes shake {
-      0% { transform: translate(1px, 1px) rotate(0deg); }
-      50% { transform: translate(-1px, -2px) rotate(-1deg); }
-      100% { transform: translate(1px, -2px) rotate(-1deg); }
-    }
-  `;
-  document.head.appendChild(style);
-
 </script>
 </body>
 </html>
