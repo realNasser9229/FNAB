@@ -2,22 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>FNAB: Five Nights at Bananski's</title>
+<title>FNAB: ULTIMATE CUSTOM NIGHT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
   :root {
-    --bg-color: #000;
-    --text-color: #0f0;
-    --danger: #f00;
+    --bg-color: #050505;
+    --hud-color: #cecece;
+    --danger: #ff0000;
+    --door-metal: #2a2a2a;
   }
 
+  * { box-sizing: border-box; }
+
   body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Share Tech Mono', monospace;
     margin: 0;
+    background: black;
+    color: var(--hud-color);
+    font-family: 'VT323', monospace;
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
@@ -25,132 +28,145 @@
     width: 100vw;
   }
 
-  /* --- LAYOUT & LAYERS --- */
-  #game-container {
+  /* --- THE OFFICE (pseudo-3D) --- */
+  #office-container {
     position: relative;
     width: 100%;
     height: 100%;
+    background: url('https://i.postimg.cc/kggq0tQY/no-Filter.webp') no-repeat center center;
+    background-size: cover;
+    transition: background-position 0.2s;
   }
 
-  /* OFFICE VIEW */
-  #office-layer {
+  /* Vignette & Atmosphere */
+  #office-overlay {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    background: black;
+    box-shadow: inset 0 0 150px black, inset 0 0 50px black;
+    pointer-events: none;
+    z-index: 2;
   }
 
-  #office-bg {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.8; /* Dim the office slightly */
-  }
-
-  /* THE CSS DOOR */
-  #security-door {
+  /* --- DOORS (Left & Right) --- */
+  .door-frame {
     position: absolute;
-    top: -100%; /* Hidden up top */
-    left: 0;
-    width: 25%; /* Covers left side */
-    height: 100%;
-    background: repeating-linear-gradient(
-      45deg,
-      #111,
-      #111 10px,
-      #222 10px,
-      #222 20px
-    );
-    border-right: 5px solid #333;
-    transition: top 0.3s ease-in-out;
-    z-index: 5;
-    box-shadow: 5px 0 20px rgba(0,0,0,0.8);
-  }
-  #security-door.closed {
     top: 0;
-  }
-
-  /* CONTROLS (Left Side) */
-  #door-controls {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
+    bottom: 0;
+    width: 15%; /* Width of the door frame */
+    background: linear-gradient(90deg, #111, #000);
+    z-index: 5;
+    border-right: 4px solid #333;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    justify-content: center;
+    align-items: center;
   }
 
-  .big-btn {
-    width: 80px;
-    height: 80px;
-    border-radius: 10px;
-    border: 2px solid white;
-    background: rgba(0,0,0,0.6);
+  #door-left { left: 0; border-right: 4px solid #333; }
+  #door-right { right: 0; border-left: 4px solid #333; border-right: none; }
+
+  /* The actual sliding metal door */
+  .metal-gate {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      #1a1a1a,
+      #1a1a1a 20px,
+      #222 20px,
+      #222 40px
+    );
+    transition: top 0.2s ease-in;
+    z-index: 4;
+    box-shadow: 0 10px 20px black;
+  }
+  .metal-gate.closed { top: 0; }
+
+  /* Blind Spot Lighting (Visual Feedback) */
+  .blind-spot {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 300px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    z-index: 3;
+    mix-blend-mode: overlay;
+  }
+  #spot-left { left: 0; background: linear-gradient(90deg, rgba(255,255,255,0.6), transparent); }
+  #spot-right { right: 0; background: linear-gradient(-90deg, rgba(255,255,255,0.6), transparent); }
+
+  /* --- BUTTON PANELS --- */
+  .control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+    z-index: 10;
+  }
+
+  .ctrl-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid #555;
+    background: #222;
     color: white;
-    font-family: inherit;
+    font-family: 'VT323';
     font-size: 1.2rem;
     cursor: pointer;
-    box-shadow: 0 0 10px black;
-    text-shadow: 1px 1px 0 #000;
-    backdrop-filter: blur(4px);
+    box-shadow: 0 5px 10px black;
+    text-align: center;
+    line-height: 55px;
+    transition: 0.1s;
   }
+  .ctrl-btn:active { transform: scale(0.95); }
   
-  .big-btn:active { transform: scale(0.95); }
+  .btn-door.active { background: #ff3333; border-color: #880000; box-shadow: 0 0 15px #ff0000; }
+  .btn-light.active { background: #ffffff; color: black; box-shadow: 0 0 20px white; }
 
-  #btn-door.active {
-    background: var(--danger);
-    border-color: red;
-    box-shadow: 0 0 20px red;
-  }
-
-  /* HUD */
-  #hud {
+  /* --- HUD --- */
+  #hud-top {
     position: absolute;
-    top: 10px;
-    right: 20px;
-    z-index: 20;
+    top: 20px; right: 20px;
     text-align: right;
-    font-size: 1.5rem;
-    text-shadow: 0 0 5px var(--text-color);
+    z-index: 20;
+    font-size: 1.8rem;
+    text-shadow: 2px 2px 0 black;
   }
-  
-  .usage-box {
-    margin-top: 5px;
+  .power-usage {
     font-size: 1rem;
+    margin-top: 5px;
+    color: #888;
   }
-  .battery-bar {
-    display: inline-block;
-    width: 50px;
-    height: 10px;
-    background: #333;
-    border: 1px solid white;
-  }
-  .battery-fill {
-    height: 100%;
-    background: #0f0;
-    width: 100%;
-  }
+  .usage-bar { display: inline-block; width: 15px; height: 8px; background: #444; margin-right: 2px; }
+  .usage-bar.lit { background: #0f0; }
+  .usage-bar.lit-high { background: #f00; }
 
-  /* CAMERA TOGGLE */
-  #monitor-toggle {
+  /* --- MONITOR SYSTEM --- */
+  #monitor-trigger {
     position: absolute;
     bottom: 20px;
-    right: 20px;
-    width: 120px;
-    height: 50px;
-    z-index: 20;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    max-width: 300px;
+    padding: 10px;
     background: rgba(255,255,255,0.1);
-    border: 1px solid white;
+    border: 2px solid white;
     color: white;
-    font-family: inherit;
-    font-size: 1.2rem;
+    font-family: 'VT323';
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 20;
+    text-align: center;
   }
-  #monitor-toggle:hover { background: rgba(255,255,255,0.3); }
+  #monitor-trigger:hover { background: rgba(255,255,255,0.2); }
 
-  /* --- CAMERA SYSTEM --- */
-  #camera-system {
+  #cctv-layer {
     display: none;
     position: absolute;
     inset: 0;
@@ -158,413 +174,462 @@
     z-index: 50;
   }
 
-  #cam-feed {
+  #cctv-feed {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
-  /* SCANLINES & STATIC */
-  .scanlines {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    background-size: 100% 2px, 3px 100%;
-    pointer-events: none;
-    z-index: 51;
-  }
-
-  #static-overlay {
+  /* The Static Effect */
+  #static-noise {
     position: absolute;
     inset: 0;
     background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif');
-    background-size: cover;
-    opacity: 0.15;
+    opacity: 0.2;
     pointer-events: none;
-    z-index: 52;
+    mix-blend-mode: screen;
   }
 
-  /* DETECTED WARNING */
-  #detected-alert {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: red;
-    font-size: 3rem;
-    border: 4px solid red;
-    padding: 20px;
-    background: rgba(0,0,0,0.8);
-    z-index: 55;
-    animation: blink 0.5s infinite;
-    text-align: center;
-  }
-
-  /* MAP UI */
-  #map-ui {
+  /* CAMERA MAP UI */
+  #map-container {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    width: 250px;
-    height: 200px;
-    background: rgba(0,0,0,0.8);
-    border: 2px solid #333;
+    width: 300px;
+    height: 250px;
+    background: rgba(0,20,0,0.9);
+    border: 2px solid #0f0;
     z-index: 60;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
     padding: 10px;
   }
 
-  .cam-btn {
-    background: #222;
-    border: 1px solid #555;
-    color: white;
-    font-family: inherit;
-    cursor: pointer;
-    font-size: 1rem;
-    position: relative;
-  }
-  
-  .cam-btn.active {
-    background: #004400;
-    border-color: #0f0;
-    color: #0f0;
-  }
-
-  /* RADAR BLIP */
-  .cam-btn.radar-blip::after {
-    content: '';
+  .map-btn {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 10px;
-    height: 10px;
+    width: 60px;
+    height: 40px;
+    background: #003300;
+    border: 1px solid #0f0;
+    color: #0f0;
+    font-family: 'VT323';
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+  .map-btn.active { background: #0f0; color: black; font-weight: bold; }
+  
+  /* Positions for Map Buttons to look like a layout */
+  #btn-cam1 { bottom: 10px; left: 120px; } /* Stage */
+  #btn-cam2 { top: 80px; left: 20px; }   /* Left Hall */
+  #btn-cam3 { top: 80px; right: 20px; }  /* Right Hall */
+  #btn-cam4 { bottom: 10px; left: 20px; } /* Kitchen */
+
+  /* RADAR DOTS */
+  .radar-dot {
+    width: 12px; height: 12px;
     background: red;
     border-radius: 50%;
-    box-shadow: 0 0 10px red;
-    animation: blink 1s infinite;
-  }
-
-  #cam-label {
     position: absolute;
-    top: 30px;
-    left: 30px;
-    font-size: 2rem;
-    z-index: 60;
-    background: black;
-    padding: 5px 10px;
+    top: -5px; right: -5px;
+    box-shadow: 0 0 5px red;
+    animation: pulse 0.5s infinite alternate;
+    display: none; /* Hidden unless logic shows it */
   }
 
   /* JUMPSCARE */
-  #jumpscare-screen {
+  #jumpscare-overlay {
     display: none;
     position: fixed;
     inset: 0;
     background: black;
-    z-index: 999;
-    align-items: center;
+    z-index: 100;
     justify-content: center;
+    align-items: center;
   }
-  #jumpscare-screen img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  #jumpscare-img { width: 100%; height: 100%; object-fit: cover; }
+
+  @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; transform: scale(1.2); } }
+  @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
+  /* Mobile Tweaks */
+  @media (max-width: 600px) {
+    .door-frame { width: 60px; }
+    .ctrl-btn { width: 45px; height: 45px; font-size: 1rem; line-height: 40px; }
+    #map-container { width: 200px; height: 150px; }
+    .map-btn { width: 50px; height: 30px; font-size: 0.8rem; }
+    #btn-cam1 { left: 75px; }
   }
-
-  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-
 </style>
 </head>
 <body>
 
-<div id="game-container">
+<div id="office-container">
+  
+  <div id="door-left" class="door-frame">
+    <div class="metal-gate" id="gate-left"></div>
+    <div class="control-panel">
+      <div class="ctrl-btn btn-door" onclick="toggleDoor('left')">DOOR</div>
+      <div class="ctrl-btn btn-light" onmousedown="toggleLight('left', true)" onmouseup="toggleLight('left', false)" ontouchstart="toggleLight('left', true)" ontouchend="toggleLight('left', false)">LGT</div>
+    </div>
+  </div>
+  <div id="spot-left" class="blind-spot"></div>
 
-  <div id="hud">
+  <div id="door-right" class="door-frame">
+    <div class="metal-gate" id="gate-right"></div>
+    <div class="control-panel">
+      <div class="ctrl-btn btn-door" onclick="toggleDoor('right')">DOOR</div>
+      <div class="ctrl-btn btn-light" onmousedown="toggleLight('right', true)" onmouseup="toggleLight('right', false)" ontouchstart="toggleLight('right', true)" ontouchend="toggleLight('right', false)">LGT</div>
+    </div>
+  </div>
+  <div id="spot-right" class="blind-spot"></div>
+
+  <div id="office-overlay"></div>
+
+  <div id="hud-top">
     <div id="clock">12:00 AM</div>
-    <div id="power-text">Power: 100%</div>
-    <div class="usage-box">
-      <div class="battery-bar"><div id="battery-fill" class="battery-fill"></div></div>
-      <br>USAGE: <span id="usage-text">1</span>
+    <div id="power">Power: 100%</div>
+    <div class="power-usage">
+      USAGE: 
+      <span class="usage-bar lit"></span>
+      <span class="usage-bar" id="use-2"></span>
+      <span class="usage-bar" id="use-3"></span>
+      <span class="usage-bar" id="use-4"></span>
+      <span class="usage-bar" id="use-5"></span>
     </div>
   </div>
 
-  <div id="office-layer">
-    <img id="office-bg" src="https://i.postimg.cc/kggq0tQY/no-Filter.webp" alt="Office">
-    
-    <div id="security-door"></div>
-
-    <div id="door-controls">
-      <button class="big-btn" id="btn-door" onclick="toggleDoor()">DOOR</button>
-    </div>
-  </div>
-
-  <button id="monitor-toggle" onclick="toggleMonitor()">📷 SYSTEM</button>
-
-  <div id="camera-system">
-    <div class="scanlines"></div>
-    <div id="static-overlay"></div>
-    
-    <div id="cam-label">CAM 1</div>
-    <div id="detected-alert">⚠ MOVEMENT<br>DETECTED ⚠</div>
-    
-    <img id="cam-feed" src="" alt="Camera Feed">
-
-    <div id="map-ui">
-      <button class="cam-btn active" id="btn-cam-0" onclick="switchCam(0)">CAM 01<br>Nas</button>
-      <button class="cam-btn" id="btn-cam-1" onclick="switchCam(1)">CAM 02<br>Mikica</button>
-      <button class="cam-btn" id="btn-cam-2" onclick="switchCam(2)">CAM 03<br>Lifter</button>
-    </div>
-  </div>
-
-  <div id="jumpscare-screen">
-    <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ5eW84YnZ4YnZ4YnZ4/xT9IgvEOwRzFnyCjZe/giphy.gif">
+  <div id="monitor-trigger" onclick="toggleMonitor()">
+    <span id="monitor-text">RAISE MONITOR</span>
   </div>
 
 </div>
 
+<div id="cctv-layer">
+  <div id="static-noise"></div>
+  <div style="position:absolute; top:20px; left:20px; color:white; font-size:1.5rem;">
+    🔴 REC <span id="cam-name-display">CAM 1A</span>
+  </div>
+
+  <img id="cctv-feed" src="" alt="Camera Feed">
+
+  <div id="map-container">
+    <div style="text-align:center; color:#0f0; margin-bottom:5px;">RADAR MAP</div>
+    
+    <button class="map-btn active" id="btn-cam1" onclick="changeCam(1)">
+      CAM 1<div class="radar-dot" id="radar-1"></div>
+    </button>
+    
+    <button class="map-btn" id="btn-cam2" onclick="changeCam(2)">
+      CAM 2<div class="radar-dot" id="radar-2"></div>
+    </button>
+    
+    <button class="map-btn" id="btn-cam3" onclick="changeCam(3)">
+      CAM 3<div class="radar-dot" id="radar-3"></div>
+    </button>
+    
+    <button class="map-btn" id="btn-cam4" onclick="changeCam(4)">
+      CAM 4<div class="radar-dot" id="radar-4"></div>
+    </button>
+
+  </div>
+</div>
+
+<div id="jumpscare-overlay">
+  <img id="jumpscare-img" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ5eW84YnZ4YnZ4YnZ4/xT9IgvEOwRzFnyCjZe/giphy.gif">
+</div>
+
 <script>
-  /* --- CONFIG --- */
-  const NIGHT_LENGTH = 360; // Seconds for a night
-  const START_POWER = 100;
-  
-  // Game State
-  let state = {
-    time: 0,
-    power: 100,
-    doorClosed: false,
-    monitorUp: false,
-    currentCam: 0,
-    usage: 1,
-    gameOver: false,
-    // Bananski State
-    aiLevel: 4, // Difficulty 1-20
-    aiLocation: 0 // 0=Cam1, 1=Cam2, 2=Cam3, 3=DoorWait, 4=Attack
+  // --- ASSETS & CONFIG ---
+  const CAMERAS = {
+    1: { name: "Show Stage", img: "https://i.postimg.cc/8zZPcbpB/no-Filter-4.webp" },
+    2: { name: "West Hall", img: "https://i.postimg.cc/50LVB5JN/no-Filter-2.webp" },
+    3: { name: "East Hall", img: "https://i.postimg.cc/QtGLdBT6/no-Filter-3.webp" },
+    4: { name: "Kitchen (Audio Only)", img: "https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif" } // Static for kitchen
   };
 
-  // Assets
-  const cams = [
-    { name: "CAM 01 - Nas", img: "https://i.postimg.cc/8zZPcbpB/no-Filter-4.webp" },
-    { name: "CAM 02 - Mikica", img: "https://i.postimg.cc/50LVB5JN/no-Filter-2.webp" },
-    { name: "CAM 03 - Lifter", img: "https://i.postimg.cc/QtGLdBT6/no-Filter-3.webp" }
+  // --- GAME STATE ---
+  let game = {
+    time: 0, // 0 to 360 (seconds)
+    power: 100,
+    usage: 1,
+    monitorUp: false,
+    currentCam: 1,
+    leftDoor: false,
+    rightDoor: false,
+    leftLight: false,
+    rightLight: false,
+    gameOver: false
+  };
+
+  // --- AI (THE ANIMATRONICS) ---
+  // Locations: 1=Stage, 2=WestHall, 3=EastHall, 4=Kitchen, 5=LeftDoorWait, 6=RightDoorWait
+  let bots = [
+    { name: "Nas", location: 1, path: [1, 2, 5], aggression: 5, moveTimer: 0 },
+    { name: "Mikica", location: 1, path: [1, 3, 6], aggression: 4, moveTimer: 0 },
+    { name: "Lifter", location: 4, path: [4, 2, 3], aggression: 6, moveTimer: 0 }
   ];
 
-  // DOM Elements
+  // --- DOM ELEMENTS ---
   const el = {
-    door: document.getElementById('security-door'),
-    doorBtn: document.getElementById('btn-door'),
-    camSys: document.getElementById('camera-system'),
-    camFeed: document.getElementById('cam-feed'),
-    camLabel: document.getElementById('cam-label'),
-    detected: document.getElementById('detected-alert'),
     clock: document.getElementById('clock'),
-    power: document.getElementById('power-text'),
-    battery: document.getElementById('battery-fill'),
-    usage: document.getElementById('usage-text'),
-    jumpscare: document.getElementById('jumpscare-screen')
+    power: document.getElementById('power'),
+    cctv: document.getElementById('cctv-layer'),
+    feed: document.getElementById('cctv-feed'),
+    camTitle: document.getElementById('cam-name-display'),
+    monitorText: document.getElementById('monitor-text'),
+    bars: [
+      document.getElementById('use-2'),
+      document.getElementById('use-3'),
+      document.getElementById('use-4'),
+      document.getElementById('use-5')
+    ]
   };
 
-  /* --- INITIALIZATION --- */
-  switchCam(0);
-  
-  /* --- GAME LOOPS --- */
-  
-  // 1. Core Timer (Time & Power) - Runs every second
+  // --- INITIALIZATION ---
+  changeCam(1);
+
+  // --- MAIN LOOPS ---
+
+  // 1. SYSTEM TICK (Every 1s) - Time & Power
   setInterval(() => {
-    if (state.gameOver) return;
-
-    // Time Progress
-    state.time++;
-    let hour = 12 + Math.floor(state.time / (NIGHT_LENGTH / 6));
-    if (hour > 12) hour -= 12;
-    if (hour === 0) hour = 12; // Fix 0 AM
-    el.clock.innerText = `${hour}:00 AM`;
-
-    if (state.time >= NIGHT_LENGTH) {
-      winGame();
-    }
-
-    // Power Drain
-    let drain = 0.1 * state.usage;
-    state.power -= drain;
-    el.power.innerText = `Power: ${Math.floor(state.power)}%`;
-    el.battery.style.width = `${state.power}%`;
+    if (game.gameOver) return;
     
-    if (state.power < 20) el.battery.style.background = "red";
+    // Time
+    game.time++;
+    let hour = 12 + Math.floor(game.time / 60);
+    if (hour > 12) hour -= 12;
+    if (hour === 0) hour = 12;
+    el.clock.innerText = `${hour}:00 AM`;
+    
+    if (game.time >= 360) winGame();
 
-    if (state.power <= 0) {
-      powerOutage();
-    }
+    // Power Drain Calculation
+    let drain = 0.1 + (game.usage * 0.15);
+    game.power -= drain;
+    el.power.innerText = `Power: ${Math.floor(game.power)}%`;
 
+    if (game.power <= 0) powerOutage();
+    
   }, 1000);
 
-  // 2. AI Movement Loop (Bananski) - Runs every 4 seconds
+  // 2. AI TICK (Every 3s) - Movement Logic
   setInterval(() => {
-    if (state.gameOver || state.power <= 0) return;
+    if (game.gameOver || game.power <= 0) return;
 
-    // AI Check
-    // Random chance based on AI Level to move
-    let chance = Math.random() * 20;
-    if (chance < state.aiLevel) {
-      moveAI();
-    }
-  }, 4000);
-
-  /* --- ACTIONS --- */
-
-  function toggleDoor() {
-    if (state.power <= 0) return;
-    state.doorClosed = !state.doorClosed;
-    
-    if (state.doorClosed) {
-      el.door.classList.add('closed');
-      el.doorBtn.classList.add('active');
-      el.doorBtn.innerText = "OPEN";
-    } else {
-      el.door.classList.remove('closed');
-      el.doorBtn.classList.remove('active');
-      el.doorBtn.innerText = "DOOR";
-    }
-    calcUsage();
-  }
-
-  function toggleMonitor() {
-    if (state.power <= 0) return;
-    state.monitorUp = !state.monitorUp;
-    el.camSys.style.display = state.monitorUp ? "block" : "none";
-    
-    // Refresh visual when opening
-    if(state.monitorUp) {
-      updateCamVisuals(); 
-    }
-    calcUsage();
-  }
-
-  function switchCam(index) {
-    state.currentCam = index;
-    
-    // Button styling
-    document.querySelectorAll('.cam-btn').forEach((b, i) => {
-      if (i === index) b.classList.add('active');
-      else b.classList.remove('active');
+    bots.forEach(bot => {
+      // Roll random chance based on aggression
+      if (Math.random() * 20 < bot.aggression) {
+        moveBot(bot);
+      }
     });
-
-    // Image update
-    el.camFeed.src = cams[index].img;
-    el.camLabel.innerText = cams[index].name;
-
-    updateCamVisuals();
-  }
-
-  function calcUsage() {
-    let u = 1; // Base usage
-    if (state.doorClosed) u += 2;
-    if (state.monitorUp) u += 1;
-    state.usage = u;
-    el.usage.innerText = "⚡".repeat(u);
-  }
-
-  /* --- AI LOGIC --- */
-
-  function moveAI() {
-    // Current Logic: Linear Path 0 -> 1 -> 2 -> 3(Door) -> Attack
-    state.aiLocation++;
-
-    // Update Radar on Map
-    updateRadar();
-
-    if (state.aiLocation > 2) {
-      // He is at the door (Stage 3)
-      console.log("Bananski is at the door!");
-    }
     
-    if (state.aiLocation > 3) {
-      // He attacks!
-      if (state.doorClosed) {
-        console.log("Blocked! Resetting Bananski.");
-        state.aiLocation = 0; // Reset to start
-        updateRadar();
+    updateRadar();
+    checkForAttacks();
+
+  }, 3000);
+
+  // --- FUNCTIONS ---
+
+  function moveBot(bot) {
+    // Simple logic: Move to next spot in path, or random
+    // If at end of path (Door), stay there until door check fails
+    
+    let currentIdx = bot.path.indexOf(bot.location);
+    
+    if (currentIdx === -1) {
+      // Reset to start if lost
+      bot.location = bot.path[0];
+    } else if (currentIdx < bot.path.length - 1) {
+      // Advance forward
+      bot.location = bot.path[currentIdx + 1];
+    } else {
+      // At the end of path (The Door). Ready to attack.
+      // 5 = Left Door, 6 = Right Door
+      console.log(`${bot.name} is waiting at the door!`);
+    }
+  }
+
+  function checkForAttacks() {
+    // Check Left Door (Loc 5)
+    let leftThreat = bots.find(b => b.location === 5);
+    if (leftThreat) {
+      if (game.leftDoor) {
+        console.log("Left Door Blocked " + leftThreat.name);
+        leftThreat.location = 1; // Send back to stage
       } else {
-        jumpscare();
+        // Attack imminent... give them a few seconds? 
+        // For this demo, instant death if they move while at door
+        if (Math.random() > 0.5) jumpscare(leftThreat.name);
       }
     }
-    
-    // If monitor is up, refresh visuals to show/hide detected warning
-    if (state.monitorUp) updateCamVisuals();
+
+    // Check Right Door (Loc 6)
+    let rightThreat = bots.find(b => b.location === 6);
+    if (rightThreat) {
+      if (game.rightDoor) {
+        console.log("Right Door Blocked " + rightThreat.name);
+        rightThreat.location = 1; // Send back
+      } else {
+         if (Math.random() > 0.5) jumpscare(rightThreat.name);
+      }
+    }
   }
 
   function updateRadar() {
-    // Remove old blips
-    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('radar-blip'));
-
-    // If Bananski is in Cam 0, 1, or 2, blink that button
-    if (state.aiLocation >= 0 && state.aiLocation <= 2) {
-      let btn = document.getElementById(`btn-cam-${state.aiLocation}`);
-      if (btn) btn.classList.add('radar-blip');
+    // Hide all dots
+    for(let i=1; i<=4; i++) {
+      let dot = document.getElementById(`radar-${i}`);
+      if(dot) dot.style.display = 'none';
     }
+
+    // Show dots where bots are
+    bots.forEach(bot => {
+      // If location is 5 or 6 (Doors), show them on Cam 2 or 3 respectively
+      let mapLoc = bot.location;
+      if (mapLoc === 5) mapLoc = 2; // Approaching West
+      if (mapLoc === 6) mapLoc = 3; // Approaching East
+      
+      let dot = document.getElementById(`radar-${mapLoc}`);
+      if (dot) dot.style.display = 'block';
+    });
   }
 
-  function updateCamVisuals() {
-    // If the camera we are looking at IS where the AI is:
-    if (state.currentCam === state.aiLocation) {
-      el.detected.style.display = "block";
+  // --- PLAYER CONTROLS ---
+
+  function toggleDoor(side) {
+    if (game.power <= 0) return;
+
+    if (side === 'left') {
+      game.leftDoor = !game.leftDoor;
+      let btn = document.querySelector('#door-left .btn-door');
+      let gate = document.getElementById('gate-left');
+      
+      if (game.leftDoor) {
+        btn.classList.add('active');
+        gate.classList.add('closed');
+      } else {
+        btn.classList.remove('active');
+        gate.classList.remove('closed');
+      }
     } else {
-      el.detected.style.display = "none";
+      game.rightDoor = !game.rightDoor;
+      let btn = document.querySelector('#door-right .btn-door');
+      let gate = document.getElementById('gate-right');
+
+      if (game.rightDoor) {
+        btn.classList.add('active');
+        gate.classList.add('closed');
+      } else {
+        btn.classList.remove('active');
+        gate.classList.remove('closed');
+      }
     }
+    calcUsage();
   }
 
-  /* --- ENDINGS --- */
+  function toggleLight(side, on) {
+    if (game.power <= 0) return;
+
+    if (side === 'left') {
+      game.leftLight = on;
+      document.getElementById('spot-left').style.opacity = on ? 1 : 0;
+      // Check for jumpscare if animatronic is there? 
+      // In real FNAF you see them in the window. Here we can play a sound cue visually.
+      if (on && bots.find(b => b.location === 5)) {
+        alertVisual("SOMETHING IS AT THE LEFT DOOR!");
+      }
+    } else {
+      game.rightLight = on;
+      document.getElementById('spot-right').style.opacity = on ? 1 : 0;
+      if (on && bots.find(b => b.location === 6)) {
+        alertVisual("SOMETHING IS AT THE RIGHT DOOR!");
+      }
+    }
+    calcUsage();
+  }
+
+  function alertVisual(msg) {
+    // Quick flashing text overlay?
+    console.log(msg); // For now just log
+  }
+
+  function toggleMonitor() {
+    if (game.power <= 0) return;
+    game.monitorUp = !game.monitorUp;
+    el.cctv.style.display = game.monitorUp ? 'block' : 'none';
+    el.monitorText.innerText = game.monitorUp ? "LOWER MONITOR" : "RAISE MONITOR";
+    calcUsage();
+  }
+
+  function changeCam(id) {
+    game.currentCam = id;
+    el.feed.src = CAMERAS[id].img;
+    el.camTitle.innerText = CAMERAS[id].name.toUpperCase();
+    
+    // Update Map Buttons
+    document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-cam${id}`).classList.add('active');
+  }
+
+  function calcUsage() {
+    let u = 1;
+    if (game.leftDoor) u++;
+    if (game.rightDoor) u++;
+    if (game.leftLight) u++;
+    if (game.rightLight) u++;
+    if (game.monitorUp) u++;
+    
+    game.usage = u;
+    
+    // Update bars
+    el.bars.forEach((bar, i) => {
+      if (i < u - 1) {
+        bar.className = "usage-bar lit";
+        if (u > 3) bar.className = "usage-bar lit-high";
+      } else {
+        bar.className = "usage-bar";
+      }
+    });
+  }
+
+  // --- END STATES ---
 
   function powerOutage() {
-    state.gameOver = true;
-    el.camSys.style.display = "none";
-    el.door.classList.remove('closed'); // Door opens when power dies
-    document.body.style.background = "black";
-    document.getElementById('office-layer').style.opacity = "0.2"; // Darken
-    el.clock.innerText = "--:--";
+    game.gameOver = true;
+    el.cctv.style.display = 'none';
+    document.getElementById('office-overlay').style.backgroundColor = "black";
+    document.getElementById('office-overlay').style.opacity = "0.9";
+    el.power.innerText = "0%";
     
-    // Jumpscare after random delay
-    setTimeout(jumpscare, 3000 + Math.random() * 5000);
+    // Open doors
+    document.querySelectorAll('.metal-gate').forEach(g => g.classList.remove('closed'));
+    
+    setTimeout(() => jumpscare("FREDDY"), 5000);
   }
 
-  function jumpscare() {
-    if (state.gameOver && state.power > 0) return; // Don't double kill
-    state.gameOver = true;
-    el.jumpscare.style.display = "flex";
-    
-    // Shake screen
-    document.body.style.animation = "shake 0.2s infinite";
-    
-    // Reload after 3s
-    setTimeout(() => location.reload(), 4000);
+  function jumpscare(who) {
+    game.gameOver = true;
+    document.getElementById('jumpscare-overlay').style.display = 'flex';
+    document.body.style.animation = "shake 0.1s infinite";
+    // Play scream sound (if we had audio)
+    setTimeout(() => location.reload(), 2000);
   }
 
   function winGame() {
-    state.gameOver = true;
-    alert("6:00 AM! YOU SURVIVED THE BANANA!");
+    game.gameOver = true;
+    alert("6:00 AM! YOU SURVIVED!");
     location.reload();
   }
 
-  /* --- CSS Shake for Jumpscare --- */
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = `
+  /* CSS Shake Animation */
+  const style = document.createElement('style');
+  style.innerHTML = `
     @keyframes shake {
       0% { transform: translate(1px, 1px) rotate(0deg); }
-      10% { transform: translate(-1px, -2px) rotate(-1deg); }
-      20% { transform: translate(-3px, 0px) rotate(1deg); }
-      30% { transform: translate(3px, 2px) rotate(0deg); }
-      40% { transform: translate(1px, -1px) rotate(1deg); }
-      50% { transform: translate(-1px, 2px) rotate(-1deg); }
-      60% { transform: translate(-3px, 1px) rotate(0deg); }
-      70% { transform: translate(3px, 1px) rotate(-1deg); }
-      80% { transform: translate(-1px, -1px) rotate(1deg); }
-      90% { transform: translate(1px, 2px) rotate(0deg); }
+      50% { transform: translate(-1px, -2px) rotate(-1deg); }
       100% { transform: translate(1px, -2px) rotate(-1deg); }
     }
   `;
-  document.head.appendChild(styleSheet);
+  document.head.appendChild(style);
 
 </script>
 </body>
