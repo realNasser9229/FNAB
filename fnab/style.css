@@ -1,0 +1,38 @@
+body {
+  background: black;
+  color: white;
+  font-family: monospace;
+  margin: 0;
+  overflow: hidden;
+}
+
+#office img, #camImg {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+}
+
+#hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+}
+
+#camBtn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 5;
+}
+
+#cams {
+  position: absolute;
+  inset: 0;
+  background: black;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
