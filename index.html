@@ -11,31 +11,216 @@
         #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
         
         /* HUD Stats */
-        #hud { position: absolute; top: 20px; right: 20px; color: #0f0; text-align: right; }
-        .stat { font-size: 28px; text-shadow: 2px 2px #000; font-weight: bold; }
+        #hud { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            color: #0f0; 
+            text-align: right;
+            background: rgba(0, 20, 0, 0.7);
+            padding: 15px;
+            border: 2px solid #0f0;
+            border-radius: 5px;
+        }
+        .stat { font-size: 28px; text-shadow: 2px 2px #000; font-weight: bold; margin: 5px 0; }
         
         /* Camera Monitor */
         #monitor-btn {
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 40%; height: 50px; background: rgba(40,40,40,0.8);
-            border: 2px solid #555; color: #fff; cursor: pointer;
-            pointer-events: auto; text-align: center; line-height: 50px;
+            position: absolute; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            width: 200px; 
+            height: 50px; 
+            background: linear-gradient(to bottom, #222, #000);
+            border: 3px solid #555; 
+            color: #0f0; 
+            cursor: pointer;
+            pointer-events: auto; 
+            text-align: center; 
+            line-height: 50px;
             transition: 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 5px;
         }
-        #monitor-btn:hover { background: #111; border-color: #0f0; }
+        #monitor-btn:hover { 
+            background: linear-gradient(to bottom, #333, #111); 
+            border-color: #0f0; 
+            box-shadow: 0 0 15px #0f0;
+        }
 
         #cam-view {
-            display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.9);
-            z-index: 20; pointer-events: auto;
+            display: none; 
+            position: absolute; 
+            inset: 0; 
+            background: #000;
+            z-index: 20; 
+            pointer-events: auto;
+            padding: 20px;
         }
-        .static { position: absolute; inset: 0; background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif'); opacity: 0.1; pointer-events: none; }
+        .static { 
+            position: absolute; 
+            inset: 0; 
+            background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif'); 
+            opacity: 0.05; 
+            pointer-events: none; 
+            z-index: 1;
+        }
         
-        .map { position: absolute; bottom: 40px; right: 40px; width: 250px; height: 180px; border: 2px solid #0f0; background: rgba(0,40,0,0.5); }
-        .cam-node { width: 40px; height: 30px; background: #000; color: #0f0; border: 1px solid #0f0; font-size: 10px; cursor: pointer; }
-
+        .cam-feed {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 60%;
+            border: 3px solid #0f0;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        .cam-feed-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .cam-character {
+            position: absolute;
+            width: 100px;
+            height: 150px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            bottom: 20px;
+            transition: left 0.5s;
+        }
+        
+        .map { 
+            position: absolute; 
+            bottom: 40px; 
+            right: 40px; 
+            width: 250px; 
+            height: 180px; 
+            border: 2px solid #0f0; 
+            background: rgba(0, 40, 0, 0.8);
+            z-index: 2;
+        }
+        
+        .map-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #0f0;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .map-node-label {
+            position: absolute;
+            color: #0f0;
+            font-size: 10px;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+        
+        .map-character {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #f00;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s;
+        }
+        
         #jumpscare {
-            display: none; position: fixed; inset: 0; background: #000; z-index: 100;
-            justify-content: center; align-items: center; color: red; font-size: 50px;
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: #000; 
+            z-index: 100;
+            justify-content: center; 
+            align-items: center; 
+            color: red; 
+            font-size: 80px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #jumpscare-img {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            margin-bottom: 30px;
+        }
+        
+        .control-panel {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            width: 120px;
+            height: 40px;
+            background: rgba(40, 40, 40, 0.8);
+            border: 2px solid #555;
+            color: #fff;
+            cursor: pointer;
+            pointer-events: auto;
+            text-align: center;
+            line-height: 40px;
+            transition: 0.3s;
+            font-size: 12px;
+        }
+        
+        .control-btn:hover {
+            border-color: #0f0;
+            background: rgba(0, 40, 0, 0.8);
+        }
+        
+        .control-btn.active {
+            background: rgba(0, 80, 0, 0.8);
+            border-color: #0f0;
+            color: #0f0;
+        }
+        
+        .door-light {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 5px;
+            right: 5px;
+            background: #f00;
+            transition: 0.3s;
+        }
+        
+        .door-light.on {
+            background: #0f0;
+            box-shadow: 0 0 10px #0f0;
+        }
+        
+        .warning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f00;
+            font-size: 24px;
+            text-align: center;
+            display: none;
+            text-shadow: 0 0 10px #f00;
         }
     </style>
 </head>
@@ -45,20 +230,56 @@
     <div id="hud">
         <div class="stat" id="time-display">12:00 AM</div>
         <div class="stat" id="power-display">100%</div>
-        <div style="font-size: 14px;">USAGE: <span id="usage-bars">|</span></div>
+        <div style="font-size: 14px; margin-top: 10px;">USAGE: <span id="usage-bars">|</span></div>
+        <div style="font-size: 12px; color: #888; margin-top: 10px;">CAMERAS: <span id="camera-display">4 ACTIVE</span></div>
     </div>
-    <div id="monitor-btn" onclick="toggleCams()">CAMERA MONITOR</div>
+    
+    <div class="control-panel">
+        <div class="control-btn" id="left-door-btn" onclick="toggleDoor('left')">
+            LEFT DOOR <div class="door-light"></div>
+        </div>
+        <div class="control-btn" id="right-door-btn" onclick="toggleDoor('right')">
+            RIGHT DOOR <div class="door-light"></div>
+        </div>
+        <div class="control-btn" id="left-light-btn" onclick="toggleLight('left')">
+            LEFT LIGHT <div class="door-light"></div>
+        </div>
+        <div class="control-btn" id="right-light-btn" onclick="toggleLight('right')">
+            RIGHT LIGHT <div class="door-light"></div>
+        </div>
+    </div>
+    
+    <div id="monitor-btn" onclick="toggleCams()">📺 CAMERA MONITOR</div>
 </div>
 
 <div id="cam-view">
     <div class="static"></div>
-    <div style="color:#0f0; padding:20px; font-size:24px;">LIVE FEED - <span id="cam-id">CAM 01</span></div>
-    <div class="map" id="map-ui">
+    <div style="color:#0f0; padding:20px; font-size:24px; z-index: 3; position: relative;">
+        LIVE FEED - <span id="cam-id">CAM 01: STAGE AREA</span>
+    </div>
+    
+    <div class="cam-feed">
+        <div class="cam-feed-content" id="cam-feed-content">
+            <div class="warning" id="cam-warning">NO SIGNAL</div>
         </div>
-    <button style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%);" onclick="toggleCams()">CLOSE</button>
+    </div>
+    
+    <div class="map" id="map-ui"></div>
+    
+    <div style="position:absolute; bottom:20px; left:20px; color:#0f0; z-index: 3;">
+        <div style="margin-bottom: 10px;">CHARACTER TRACKING:</div>
+        <div id="character-status" style="font-size: 12px;"></div>
+    </div>
+    
+    <button style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); padding: 10px 30px; background:#222; color:#0f0; border:2px solid #555; cursor:pointer; z-index: 3;" onclick="toggleCams()">
+        CLOSE MONITOR
+    </button>
 </div>
 
-<div id="jumpscare">GAME OVER</div>
+<div id="jumpscare">
+    <img id="jumpscare-img" src="">
+    <div>GAME OVER</div>
+</div>
 
 <script type="importmap">
     { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -66,6 +287,44 @@
 
 <script type="module">
 import * as THREE from 'three';
+
+// --- CHARACTER CONFIGURATION ---
+const CHARACTERS = {
+    'Bananski': {
+        img: 'https://i.postimg.cc/kggq0tQY/no-Filter.webp',
+        aggression: 3,
+        path: [0, 1, 2, 4], // Stage → Dining → West Hall → Left Door
+        moveChance: 0.3
+    },
+    'Nas': {
+        img: 'https://i.postimg.cc/8zZPcbpB/no-Filter-4.webp',
+        aggression: 4,
+        path: [0, 1, 3, 5], // Stage → Dining → East Hall → Right Door
+        moveChance: 0.4
+    },
+    'Mikica': {
+        img: 'https://i.postimg.cc/50LVB5JN/no-Filter-2.webp',
+        aggression: 2,
+        path: [0, 1, 2, 1, 3, 5], // More complex path
+        moveChance: 0.25
+    },
+    'Lifter': {
+        img: 'https://i.postimg.cc/QtGLdBT6/no-Filter-3.webp',
+        aggression: 5,
+        path: [0, 1, 2, 4, 1, 3, 5], // Most aggressive
+        moveChance: 0.5
+    }
+};
+
+// --- NODE CONFIGURATION ---
+const NODES = [
+    { id: 0, name: "STAGE AREA", x: 0.5, y: 0.1 },
+    { id: 1, name: "DINING AREA", x: 0.5, y: 0.4 },
+    { id: 2, name: "WEST HALL", x: 0.2, y: 0.6 },
+    { id: 3, name: "EAST HALL", x: 0.8, y: 0.6 },
+    { id: 4, name: "LEFT DOOR", x: 0.2, y: 0.9 },
+    { id: 5, name: "RIGHT DOOR", x: 0.8, y: 0.9 }
+];
 
 // --- CONFIG & STATE ---
 const state = {
@@ -77,15 +336,26 @@ const state = {
     rightDoor: false,
     leftLight: false,
     rightLight: false,
+    activeCamera: 0,
     mouse: new THREE.Vector2(),
     targetRotation: new THREE.Euler(0, 0, 0)
 };
 
-// Nodes: 0: Stage, 1: Dining, 2: West Hall, 3: East Hall, 4: Left Door, 5: Right Door
-let animatronics = [
-    { name: 'Nas', pos: 0, path: [0, 1, 2, 4], aggression: 4 },
-    { name: 'Mikica', pos: 0, path: [0, 1, 3, 5], aggression: 3 }
-];
+// Initialize animatronics
+let animatronics = [];
+Object.keys(CHARACTERS).forEach(name => {
+    const char = CHARACTERS[name];
+    animatronics.push({
+        name: name,
+        pos: 0,
+        path: char.path,
+        aggression: char.aggression,
+        img: char.img,
+        moveChance: char.moveChance,
+        visible: false,
+        camPosition: 0
+    });
+});
 
 // --- THREE.JS INITIALIZATION ---
 const scene = new THREE.Scene();
@@ -93,71 +363,144 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 // --- OFFICE CONSTRUCTION ---
 const office = new THREE.Group();
 
-// Room Shell
+// Room Shell with improved materials
 const room = new THREE.Mesh(
     new THREE.BoxGeometry(15, 10, 15),
-    new THREE.MeshStandardMaterial({ color: 0x151515, side: THREE.BackSide })
+    new THREE.MeshStandardMaterial({ 
+        color: 0x101010, 
+        roughness: 0.8,
+        metalness: 0.2,
+        side: THREE.BackSide 
+    })
 );
+room.receiveShadow = true;
 office.add(room);
+
+// Floor
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(15, 15),
+    new THREE.MeshStandardMaterial({ 
+        color: 0x222222, 
+        roughness: 0.7,
+        metalness: 0.1
+    })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -5;
+floor.receiveShadow = true;
+office.add(floor);
 
 // Desk
 const desk = new THREE.Mesh(
-    new THREE.BoxGeometry(6, 0.5, 3),
-    new THREE.MeshStandardMaterial({ color: 0x222222 })
+    new THREE.BoxGeometry(6, 1, 3),
+    new THREE.MeshStandardMaterial({ 
+        color: 0x1a1a1a,
+        roughness: 0.6,
+        metalness: 0.3
+    })
 );
-desk.position.set(0, -1, -5);
+desk.position.set(0, -3.5, -5);
+desk.castShadow = true;
+desk.receiveShadow = true;
 office.add(desk);
 
+// Monitor on desk
+const monitor = new THREE.Mesh(
+    new THREE.BoxGeometry(2, 1.5, 0.2),
+    new THREE.MeshStandardMaterial({ 
+        color: 0x333333,
+        emissive: 0x003300,
+        emissiveIntensity: 0.1
+    })
+);
+monitor.position.set(0, -2.5, -5);
+office.add(monitor);
+
 // Doors
-function createDoor(x) {
+function createDoor(x, color) {
     const group = new THREE.Group();
+    
+    // Door frame
+    const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 9, 4.2),
+        new THREE.MeshStandardMaterial({ color: 0x444444 })
+    );
+    group.add(frame);
+    
+    // Door gate
     const gate = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 8, 4),
-        new THREE.MeshStandardMaterial({ color: 0x333333 })
+        new THREE.BoxGeometry(0.1, 8, 4),
+        new THREE.MeshStandardMaterial({ 
+            color: color,
+            emissive: color,
+            emissiveIntensity: 0.1
+        })
     );
     gate.position.y = 8; // Start open
+    gate.name = 'door_gate';
     group.add(gate);
+    
     group.position.set(x, 0, 0);
     return { group, gate };
 }
 
-const leftDoorObj = createDoor(-7.2);
-const rightDoorObj = createDoor(7.2);
+const leftDoorObj = createDoor(-7.2, 0xaa0000);
+const rightDoorObj = createDoor(7.2, 0xaa0000);
 office.add(leftDoorObj.group, rightDoorObj.group);
 
-// Interactive Buttons (Red/White Boxes on Walls)
+// Interactive Buttons
 function createButton(name, x, z, color) {
     const btn = new THREE.Mesh(
-        new THREE.BoxGeometry(0.3, 0.5, 0.5),
-        new THREE.MeshStandardMaterial({ color: color })
+        new THREE.CylinderGeometry(0.2, 0.2, 0.3, 16),
+        new THREE.MeshStandardMaterial({ 
+            color: color,
+            emissive: color,
+            emissiveIntensity: 0.2
+        })
     );
-    btn.position.set(x, 1, z);
+    btn.position.set(x, -3, z);
     btn.name = name;
     return btn;
 }
 
-const btnLDoor = createButton('btn_l_door', -7, 2, 0xaa0000);
-const btnRDoor = createButton('btn_r_door', 7, 2, 0xaa0000);
-office.add(btnLDoor, btnRDoor);
+const btnLDoor = createButton('btn_l_door', -6.5, -4, 0xaa0000);
+const btnRDoor = createButton('btn_r_door', 6.5, -4, 0xaa0000);
+const btnLLight = createButton('btn_l_light', -5.5, -4, 0x333300);
+const btnRLight = createButton('btn_r_light', 5.5, -4, 0x333300);
+
+[btnLDoor, btnRDoor, btnLLight, btnRLight].forEach(btn => {
+    btn.castShadow = true;
+    office.add(btn);
+});
 
 scene.add(office);
 
 // --- LIGHTING ---
-const ambient = new THREE.AmbientLight(0xffffff, 0.02);
+const ambient = new THREE.AmbientLight(0xffffff, 0.05);
 scene.add(ambient);
 
-const officeLight = new THREE.PointLight(0xffffff, 20, 10);
-officeLight.position.set(0, 4, -2);
+const officeLight = new THREE.PointLight(0xffffff, 15, 12);
+officeLight.position.set(0, 2, -2);
+officeLight.castShadow = true;
+officeLight.shadow.mapSize.width = 1024;
+officeLight.shadow.mapSize.height = 1024;
 scene.add(officeLight);
 
-const hallwayLightL = new THREE.PointLight(0xffffff, 0, 10);
-hallwayLightL.position.set(-6, 2, 0);
+const hallwayLightL = new THREE.PointLight(0xffffcc, 0, 8);
+hallwayLightL.position.set(-8, 2, 0);
+hallwayLightL.castShadow = true;
 scene.add(hallwayLightL);
+
+const hallwayLightR = new THREE.PointLight(0xffffcc, 0, 8);
+hallwayLightR.position.set(8, 2, 0);
+hallwayLightR.castShadow = true;
+scene.add(hallwayLightR);
 
 // --- INPUT & RAYCASTING ---
 const raycaster = new THREE.Raycaster();
@@ -167,92 +510,293 @@ window.addEventListener('mousemove', (e) => {
     state.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     
     // Pan Camera
-    state.targetRotation.y = -state.mouse.x * 0.8;
-    state.targetRotation.x = state.mouse.y * 0.2;
+    state.targetRotation.y = THREE.MathUtils.clamp(-state.mouse.x * 0.5, -0.5, 0.5);
+    state.targetRotation.x = THREE.MathUtils.clamp(state.mouse.y * 0.1, -0.2, 0.2);
 });
 
-window.addEventListener('mousedown', () => {
+window.addEventListener('click', (e) => {
+    if (state.camOpen) return;
+    
     raycaster.setFromCamera(state.mouse, camera);
     const hits = raycaster.intersectObjects(office.children);
     
     hits.forEach(hit => {
         if(hit.object.name === 'btn_l_door') {
-            state.leftDoor = !state.leftDoor;
-            leftDoorObj.gate.position.y = state.leftDoor ? 0 : 8;
-            hit.object.material.color.set(state.leftDoor ? 0x00ff00 : 0xaa0000);
+            toggleDoor('left');
         }
         if(hit.object.name === 'btn_r_door') {
-            state.rightDoor = !state.rightDoor;
-            rightDoorObj.gate.position.y = state.rightDoor ? 0 : 8;
-            hit.object.material.color.set(state.rightDoor ? 0x00ff00 : 0xaa0000);
+            toggleDoor('right');
+        }
+        if(hit.object.name === 'btn_l_light') {
+            toggleLight('left');
+        }
+        if(hit.object.name === 'btn_r_light') {
+            toggleLight('right');
         }
     });
-    updateUsage();
 });
 
-// --- AI & GAME LOGIC ---
-function updateAI() {
-    animatronics.forEach(bot => {
-        if (Math.random() * 10 < bot.aggression) {
-            let curIdx = bot.path.indexOf(bot.pos);
-            if (curIdx < bot.path.length - 1) {
-                bot.pos = bot.path[curIdx + 1];
-            } else {
-                // Check if door is closed
-                if (bot.pos === 4 && !state.leftDoor) jumpscare();
-                if (bot.pos === 5 && !state.rightDoor) jumpscare();
-                // If blocked, go back to stage
-                if (bot.pos === 4 && state.leftDoor) bot.pos = 0;
-                if (bot.pos === 5 && state.rightDoor) bot.pos = 0;
-            }
-        }
-    });
+// --- GAME FUNCTIONS ---
+function toggleDoor(side) {
+    if (side === 'left') {
+        state.leftDoor = !state.leftDoor;
+        leftDoorObj.gate.position.y = state.leftDoor ? 0 : 8;
+        leftDoorObj.gate.material.color.set(state.leftDoor ? 0x00aa00 : 0xaa0000);
+        leftDoorObj.gate.material.emissive.set(state.leftDoor ? 0x00aa00 : 0xaa0000);
+        document.getElementById('left-door-btn').classList.toggle('active', state.leftDoor);
+        document.querySelector('#left-door-btn .door-light').classList.toggle('on', state.leftDoor);
+    } else {
+        state.rightDoor = !state.rightDoor;
+        rightDoorObj.gate.position.y = state.rightDoor ? 0 : 8;
+        rightDoorObj.gate.material.color.set(state.rightDoor ? 0x00aa00 : 0xaa0000);
+        rightDoorObj.gate.material.emissive.set(state.rightDoor ? 0x00aa00 : 0xaa0000);
+        document.getElementById('right-door-btn').classList.toggle('active', state.rightDoor);
+        document.querySelector('#right-door-btn .door-light').classList.toggle('on', state.rightDoor);
+    }
+    updateUsage();
 }
 
-function jumpscare() {
-    document.getElementById('jumpscare').style.display = 'flex';
-    setTimeout(() => location.reload(), 3000);
+function toggleLight(side) {
+    if (side === 'left') {
+        state.leftLight = !state.leftLight;
+        hallwayLightL.intensity = state.leftLight ? 15 : 0;
+        document.getElementById('left-light-btn').classList.toggle('active', state.leftLight);
+        document.querySelector('#left-light-btn .door-light').classList.toggle('on', state.leftLight);
+    } else {
+        state.rightLight = !state.rightLight;
+        hallwayLightR.intensity = state.rightLight ? 15 : 0;
+        document.getElementById('right-light-btn').classList.toggle('active', state.rightLight);
+        document.querySelector('#right-light-btn .door-light').classList.toggle('on', state.rightLight);
+    }
+    updateUsage();
 }
 
 window.toggleCams = () => {
     state.camOpen = !state.camOpen;
     document.getElementById('cam-view').style.display = state.camOpen ? 'block' : 'none';
     updateUsage();
+    
+    if (state.camOpen) {
+        updateCameraFeed();
+        updateMap();
+        updateCharacterStatus();
+    }
 };
+
+function updateCameraFeed() {
+    const camFeed = document.getElementById('cam-feed-content');
+    camFeed.innerHTML = '';
+    
+    // Add camera background based on active camera
+    const cameraNames = ["STAGE AREA", "DINING AREA", "WEST HALL", "EAST HALL", "LEFT DOOR", "RIGHT DOOR"];
+    document.getElementById('cam-id').textContent = `CAM ${String(state.activeCamera + 1).padStart(2, '0')}: ${cameraNames[state.activeCamera]}`;
+    
+    // Show characters in this camera
+    animatronics.forEach(bot => {
+        if (bot.pos === state.activeCamera) {
+            const charDiv = document.createElement('div');
+            charDiv.className = 'cam-character';
+            charDiv.style.backgroundImage = `url('${bot.img}')`;
+            charDiv.style.left = `${bot.camPosition}%`;
+            camFeed.appendChild(charDiv);
+            
+            // Update character position for movement
+            bot.camPosition = (bot.camPosition + 1) % 80;
+        }
+    });
+    
+    // Show warning if no characters
+    document.getElementById('cam-warning').style.display = 
+        camFeed.children.length === 0 ? 'block' : 'none';
+}
+
+function updateMap() {
+    const mapDiv = document.getElementById('map-ui');
+    mapDiv.innerHTML = '';
+    
+    // Draw nodes
+    NODES.forEach(node => {
+        const nodeEl = document.createElement('div');
+        nodeEl.className = 'map-node';
+        nodeEl.style.left = `${node.x * 100}%`;
+        nodeEl.style.top = `${node.y * 100}%`;
+        nodeEl.title = node.name;
+        mapDiv.appendChild(nodeEl);
+        
+        const label = document.createElement('div');
+        label.className = 'map-node-label';
+        label.textContent = node.id;
+        label.style.left = `${node.x * 100}%`;
+        label.style.top = `${node.y * 100}%`;
+        mapDiv.appendChild(label);
+    });
+    
+    // Draw characters
+    animatronics.forEach(bot => {
+        const node = NODES[bot.pos];
+        if (node) {
+            const charEl = document.createElement('div');
+            charEl.className = 'map-character';
+            charEl.title = bot.name;
+            charEl.style.left = `${node.x * 100}%`;
+            charEl.style.top = `${node.y * 100}%`;
+            mapDiv.appendChild(charEl);
+        }
+    });
+}
+
+function updateCharacterStatus() {
+    const statusDiv = document.getElementById('character-status');
+    statusDiv.innerHTML = '';
+    
+    animatronics.forEach(bot => {
+        const node = NODES[bot.pos];
+        const status = document.createElement('div');
+        status.textContent = `${bot.name}: ${node ? node.name : 'UNKNOWN'}`;
+        status.style.color = node && (node.id === 4 || node.id === 5) ? '#f00' : '#0f0';
+        statusDiv.appendChild(status);
+    });
+}
+
+function updateAI() {
+    animatronics.forEach(bot => {
+        // Chance to move based on aggression
+        if (Math.random() < bot.moveChance) {
+            let curIdx = bot.path.indexOf(bot.pos);
+            if (curIdx < bot.path.length - 1) {
+                bot.pos = bot.path[curIdx + 1];
+            } else {
+                // Loop back or stay
+                if (Math.random() < 0.3) {
+                    bot.pos = bot.path[0];
+                }
+            }
+        }
+        
+        // Check for jumpscare
+        if (bot.pos === 4 && !state.leftDoor) {
+            triggerJumpscare(bot);
+        }
+        if (bot.pos === 5 && !state.rightDoor) {
+            triggerJumpscare(bot);
+        }
+    });
+    
+    if (state.camOpen) {
+        updateMap();
+        updateCharacterStatus();
+    }
+}
+
+function triggerJumpscare(bot) {
+    document.getElementById('jumpscare-img').src = bot.img;
+    const jumpscare = document.getElementById('jumpscare');
+    jumpscare.style.display = 'flex';
+    
+    // Fade in
+    setTimeout(() => {
+        jumpscare.style.opacity = '1';
+    }, 10);
+    
+    // Play sound effect (optional - add later)
+    // const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-horror-scream-2836.mp3');
+    // audio.volume = 0.5;
+    // audio.play().catch(e => console.log("Audio play failed:", e));
+    
+    setTimeout(() => {
+        jumpscare.style.opacity = '0';
+        setTimeout(() => {
+            jumpscare.style.display = 'none';
+            location.reload();
+        }, 300);
+    }, 3000);
+}
 
 function updateUsage() {
     let u = 1;
     if (state.leftDoor) u++;
     if (state.rightDoor) u++;
-    if (state.camOpen) u++;
+    if (state.leftLight) u++;
+    if (state.rightLight) u++;
+    if (state.camOpen) u += 2;
     state.usage = u;
-    document.getElementById('usage-bars').innerText = "|".repeat(u);
+    document.getElementById('usage-bars').innerText = "⚡".repeat(Math.min(u, 10));
+}
+
+function switchCamera(direction) {
+    state.activeCamera = (state.activeCamera + direction + 6) % 6;
+    if (state.camOpen) {
+        updateCameraFeed();
+    }
 }
 
 // --- ENGINE LOOPS ---
 function animate() {
     requestAnimationFrame(animate);
     
-    // Smooth Panning
-    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, state.targetRotation.y, 0.05);
-    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, state.targetRotation.x, 0.05);
-
-    // Light Flickering
-    if(Math.random() > 0.97) officeLight.intensity = Math.random() * 25;
+    // Smooth Camera Panning
+    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, state.targetRotation.y, 0.1);
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, state.targetRotation.x, 0.1);
+    
+    // Light Flickering Effect
+    if(Math.random() > 0.95) {
+        officeLight.intensity = 10 + Math.random() * 10;
+    } else {
+        officeLight.intensity = 15;
+    }
+    
+    // Door button glow
+    const time = Date.now() * 0.001;
+    btnLDoor.material.emissiveIntensity = 0.2 + Math.sin(time * 3) * 0.1;
+    btnRDoor.material.emissiveIntensity = 0.2 + Math.sin(time * 3 + 1) * 0.1;
     
     renderer.render(scene, camera);
 }
 
+// Game Timer
 setInterval(() => {
     state.time++;
-    state.power -= (state.usage * 0.15);
-    document.getElementById('power-display').innerText = Math.floor(state.power) + "%";
-    document.getElementById('time-display').innerText = (12 + Math.floor(state.time/60)) + ":00 AM";
-    if (state.power <= 0) location.reload();
+    state.power -= (state.usage * 0.1);
+    
+    // Update HUD
+    document.getElementById('power-display').innerText = Math.max(0, Math.floor(state.power)) + "%";
+    
+    // Format time
+    const hour = 12 + Math.floor(state.time / 60);
+    const minute = state.time % 60;
+    const ampm = hour >= 24 ? 'AM' : 'AM';
+    document.getElementById('time-display').innerText = 
+        `${hour % 12 || 12}:${minute.toString().padStart(2, '0')} ${ampm}`;
+    
+    // Update camera display
+    document.getElementById('camera-display').textContent = `${animatronics.filter(b => b.pos < 4).length} ACTIVE`;
+    
+    // Check for game over
+    if (state.power <= 0) {
+        document.getElementById('jumpscare-img').src = '';
+        triggerJumpscare({name: 'SYSTEM FAILURE', img: ''});
+    }
+    
+    // Update AI
     updateAI();
-}, 2000);
+}, 3000);
 
-camera.position.set(0, 1, 3);
+// Camera switching
+document.addEventListener('keydown', (e) => {
+    if (!state.camOpen) return;
+    
+    if (e.key === 'ArrowLeft') {
+        switchCamera(-1);
+    } else if (e.key === 'ArrowRight') {
+        switchCamera(1);
+    } else if (e.key >= '1' && e.key <= '6') {
+        state.activeCamera = parseInt(e.key) - 1;
+        updateCameraFeed();
+    }
+});
+
+// Initialize
+camera.position.set(0, 0, 5);
 animate();
 
 // Resize Handler
@@ -262,6 +806,8 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// Initial HUD update
+updateUsage();
 </script>
 </body>
 </html>
