@@ -1,36 +1,55 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
+  margin: 0;
   background: black;
   color: white;
   font-family: monospace;
-  margin: 0;
   overflow: hidden;
 }
 
-#office img, #camImg {
+#office img,
+#camImg {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
 }
 
 #hud {
-  position: absolute;
+  position: fixed;
   top: 10px;
   left: 10px;
-  z-index: 5;
+  z-index: 10;
+  display: flex;
+  gap: 20px;
 }
 
 #camBtn {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 5;
+  z-index: 10;
+  padding: 10px 16px;
+  font-size: 16px;
 }
 
 #cams {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: black;
+  z-index: 20;
   text-align: center;
+}
+
+#camName {
+  margin: 10px 0;
+}
+
+.cam-controls button {
+  margin: 10px;
+  padding: 10px 20px;
 }
 
 .hidden {
