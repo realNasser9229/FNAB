@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>FNAB – Night 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div id="hud">
@@ -13,16 +15,20 @@
 </div>
 
 <div id="office">
-  <img id="office-img" src="https://i.postimg.cc/kggq0tQY/no-Filter.webp">
+  <img id="office-img"
+       src="https://i.postimg.cc/kggq0tQY/no-Filter.webp"
+       alt="Office">
 </div>
 
-<button id="camBtn">📷 Cameras</button>
+<button id="camBtn">📷 CAMS</button>
 
 <div id="cams" class="hidden">
-  <h2 id="camName">CAM 1</h2>
-  <img id="camImg">
-  <button onclick="switchCam(-1)">◀</button>
-  <button onclick="switchCam(1)">▶</button>
+  <h2 id="camName"></h2>
+  <img id="camImg" />
+  <div class="cam-controls">
+    <button id="prevCam">◀</button>
+    <button id="nextCam">▶</button>
+  </div>
 </div>
 
 <script src="game.js"></script>
