@@ -3,53 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FNAB: Security Breach</title>
+    <title>FNAB: 3D SECURITY HUB</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
-        #overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+        canvas { display: block; }
         
-        /* HUD */
-        #hud { position: absolute; top: 20px; right: 20px; color: #fff; text-align: right; pointer-events: none; }
-        .stats { font-size: 24px; text-shadow: 2px 2px #000; color: #0f0; }
+        #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
         
-        /* Camera UI */
-        #cam-overlay { 
-            display: none; position: absolute; inset: 0; background: rgba(0,20,0,0.3);
-            border: 20px solid rgba(255,255,255,0.1); pointer-events: auto; z-index: 20;
+        /* HUD Stats */
+        #hud { position: absolute; top: 20px; right: 20px; color: #0f0; text-align: right; }
+        .stat { font-size: 28px; text-shadow: 2px 2px #000; font-weight: bold; }
+        
+        /* Camera Monitor */
+        #monitor-btn {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 40%; height: 50px; background: rgba(40,40,40,0.8);
+            border: 2px solid #555; color: #fff; cursor: pointer;
+            pointer-events: auto; text-align: center; line-height: 50px;
+            transition: 0.3s;
+        }
+        #monitor-btn:hover { background: #111; border-color: #0f0; }
+
+        #cam-view {
+            display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 20; pointer-events: auto;
         }
         .static { position: absolute; inset: 0; background: url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif'); opacity: 0.1; pointer-events: none; }
         
-        #cam-toggle {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 300px; height: 40px; border: 2px solid #fff; color: #fff;
-            background: rgba(0,0,0,0.5); cursor: pointer; pointer-events: auto; z-index: 30;
-        }
+        .map { position: absolute; bottom: 40px; right: 40px; width: 250px; height: 180px; border: 2px solid #0f0; background: rgba(0,40,0,0.5); }
+        .cam-node { width: 40px; height: 30px; background: #000; color: #0f0; border: 1px solid #0f0; font-size: 10px; cursor: pointer; }
 
         #jumpscare {
             display: none; position: fixed; inset: 0; background: #000; z-index: 100;
-            justify-content: center; align-items: center;
+            justify-content: center; align-items: center; color: red; font-size: 50px;
         }
     </style>
 </head>
 <body>
 
-<div id="overlay">
+<div id="ui-layer">
     <div id="hud">
-        <div class="stats" id="time-display">12:00 AM</div>
-        <div class="stats" id="power-display">100%</div>
-        <div style="font-size: 12px;">USAGE: <span id="usage-display"> > </span></div>
+        <div class="stat" id="time-display">12:00 AM</div>
+        <div class="stat" id="power-display">100%</div>
+        <div style="font-size: 14px;">USAGE: <span id="usage-bars">|</span></div>
     </div>
-    <button id="cam-toggle">MONITOR</button>
+    <div id="monitor-btn" onclick="toggleCams()">CAMERA MONITOR</div>
 </div>
 
-<div id="cam-overlay">
+<div id="cam-view">
     <div class="static"></div>
-    <div style="color: #0f0; padding: 40px;">CAMERA FEED - LIVE</div>
-    </div>
-
-<div id="jumpscare">
-    <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ5eW84YnZ4YnZ4YnZ4/xT9IgvEOwRzFnyCjZe/giphy.gif" width="100%">
+    <div style="color:#0f0; padding:20px; font-size:24px;">LIVE FEED - <span id="cam-id">CAM 01</span></div>
+    <div class="map" id="map-ui">
+        </div>
+    <button style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%);" onclick="toggleCams()">CLOSE</button>
 </div>
+
+<div id="jumpscare">GAME OVER</div>
 
 <script type="importmap">
     { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -58,163 +67,201 @@
 <script type="module">
 import * as THREE from 'three';
 
-// --- CONFIG ---
-let state = {
+// --- CONFIG & STATE ---
+const state = {
     power: 100,
     time: 0,
     usage: 1,
+    camOpen: false,
     leftDoor: false,
     rightDoor: false,
-    camOpen: false,
-    lookX: 0
+    leftLight: false,
+    rightLight: false,
+    mouse: new THREE.Vector2(),
+    targetRotation: new THREE.Euler(0, 0, 0)
 };
 
-// --- THREE SCENE ---
+// Nodes: 0: Stage, 1: Dining, 2: West Hall, 3: East Hall, 4: Left Door, 5: Right Door
+let animatronics = [
+    { name: 'Nas', pos: 0, path: [0, 1, 2, 4], aggression: 4 },
+    { name: 'Mikica', pos: 0, path: [0, 1, 3, 5], aggression: 3 }
+];
+
+// --- THREE.JS INITIALIZATION ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// --- OFFICE GEOMETRY ---
-const officeGroup = new THREE.Group();
+// --- OFFICE CONSTRUCTION ---
+const office = new THREE.Group();
 
-// Dark Industrial Room
-const roomGeo = new THREE.BoxGeometry(12, 8, 12);
-const roomMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, side: THREE.BackSide });
-const room = new THREE.Mesh(roomGeo, roomMat);
-officeGroup.add(room);
+// Room Shell
+const room = new THREE.Mesh(
+    new THREE.BoxGeometry(15, 10, 15),
+    new THREE.MeshStandardMaterial({ color: 0x151515, side: THREE.BackSide })
+);
+office.add(room);
 
-// Left & Right Doors (Visuals)
+// Desk
+const desk = new THREE.Mesh(
+    new THREE.BoxGeometry(6, 0.5, 3),
+    new THREE.MeshStandardMaterial({ color: 0x222222 })
+);
+desk.position.set(0, -1, -5);
+office.add(desk);
+
+// Doors
 function createDoor(x) {
-    const door = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 7, 3),
+    const group = new THREE.Group();
+    const gate = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 8, 4),
         new THREE.MeshStandardMaterial({ color: 0x333333 })
     );
-    door.position.set(x, 7, 0); // Start Open (Up)
-    return door;
+    gate.position.y = 8; // Start open
+    group.add(gate);
+    group.position.set(x, 0, 0);
+    return { group, gate };
 }
-const leftDoor = createDoor(-5.8);
-const rightDoor = createDoor(5.8);
-officeGroup.add(leftDoor, rightDoor);
 
-// Physical Buttons (Clickable)
-const btnGeo = new THREE.BoxGeometry(0.2, 0.4, 0.4);
-const leftBtn = new THREE.Mesh(btnGeo, new THREE.MeshStandardMaterial({ color: 0xff0000 }));
-leftBtn.position.set(-5.7, 0, 2);
-leftBtn.name = "left_button";
+const leftDoorObj = createDoor(-7.2);
+const rightDoorObj = createDoor(7.2);
+office.add(leftDoorObj.group, rightDoorObj.group);
 
-const rightBtn = new THREE.Mesh(btnGeo, new THREE.MeshStandardMaterial({ color: 0xff0000 }));
-rightBtn.position.set(5.7, 0, 2);
-rightBtn.name = "right_button";
-officeGroup.add(leftBtn, rightBtn);
+// Interactive Buttons (Red/White Boxes on Walls)
+function createButton(name, x, z, color) {
+    const btn = new THREE.Mesh(
+        new THREE.BoxGeometry(0.3, 0.5, 0.5),
+        new THREE.MeshStandardMaterial({ color: color })
+    );
+    btn.position.set(x, 1, z);
+    btn.name = name;
+    return btn;
+}
 
-scene.add(officeGroup);
+const btnLDoor = createButton('btn_l_door', -7, 2, 0xaa0000);
+const btnRDoor = createButton('btn_r_door', 7, 2, 0xaa0000);
+office.add(btnLDoor, btnRDoor);
+
+scene.add(office);
 
 // --- LIGHTING ---
-const ambient = new THREE.AmbientLight(0xffffff, 0.05);
+const ambient = new THREE.AmbientLight(0xffffff, 0.02);
 scene.add(ambient);
 
-const deskLight = new THREE.PointLight(0xffffff, 15, 8);
-deskLight.position.set(0, 2, -2);
-scene.add(deskLight);
+const officeLight = new THREE.PointLight(0xffffff, 20, 10);
+officeLight.position.set(0, 4, -2);
+scene.add(officeLight);
 
-// --- INTERACTION ---
+const hallwayLightL = new THREE.PointLight(0xffffff, 0, 10);
+hallwayLightL.position.set(-6, 2, 0);
+scene.add(hallwayLightL);
+
+// --- INPUT & RAYCASTING ---
 const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
 
-window.addEventListener('mousedown', (e) => {
-    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(officeGroup.children);
-    
-    intersects.forEach(hit => {
-        if(hit.object.name === "left_button") toggleDoor('left');
-        if(hit.object.name === "right_button") toggleDoor('right');
-    });
-});
-
-function toggleDoor(side) {
-    if(side === 'left') {
-        state.leftDoor = !state.leftDoor;
-        leftDoor.position.y = state.leftDoor ? 0 : 7;
-        leftBtn.material.color.set(state.leftDoor ? 0x00ff00 : 0xff0000);
-    } else {
-        state.rightDoor = !state.rightDoor;
-        rightDoor.position.y = state.rightDoor ? 0 : 7;
-        rightBtn.material.color.set(state.rightDoor ? 0x00ff00 : 0xff0000);
-    }
-    updateUsage();
-}
-
-// --- CAMERA PANNING ---
 window.addEventListener('mousemove', (e) => {
-    state.lookX = (e.clientX / window.innerWidth - 0.5) * 1.5;
+    state.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    state.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    
+    // Pan Camera
+    state.targetRotation.y = -state.mouse.x * 0.8;
+    state.targetRotation.x = state.mouse.y * 0.2;
 });
 
-// --- AI LOGIC ---
-let aiPos = 0; // 0: Cam1, 1: Cam2, 2: At Door
-setInterval(() => {
-    if (Math.random() > 0.7) {
-        aiPos++;
-        console.log("Something moved. Current Stage: " + aiPos);
-        if (aiPos > 2) {
-            if (!state.leftDoor) {
-                triggerJumpscare();
+window.addEventListener('mousedown', () => {
+    raycaster.setFromCamera(state.mouse, camera);
+    const hits = raycaster.intersectObjects(office.children);
+    
+    hits.forEach(hit => {
+        if(hit.object.name === 'btn_l_door') {
+            state.leftDoor = !state.leftDoor;
+            leftDoorObj.gate.position.y = state.leftDoor ? 0 : 8;
+            hit.object.material.color.set(state.leftDoor ? 0x00ff00 : 0xaa0000);
+        }
+        if(hit.object.name === 'btn_r_door') {
+            state.rightDoor = !state.rightDoor;
+            rightDoorObj.gate.position.y = state.rightDoor ? 0 : 8;
+            hit.object.material.color.set(state.rightDoor ? 0x00ff00 : 0xaa0000);
+        }
+    });
+    updateUsage();
+});
+
+// --- AI & GAME LOGIC ---
+function updateAI() {
+    animatronics.forEach(bot => {
+        if (Math.random() * 10 < bot.aggression) {
+            let curIdx = bot.path.indexOf(bot.pos);
+            if (curIdx < bot.path.length - 1) {
+                bot.pos = bot.path[curIdx + 1];
             } else {
-                aiPos = 0; // Reset back to cams
-                console.log("Blocked!");
+                // Check if door is closed
+                if (bot.pos === 4 && !state.leftDoor) jumpscare();
+                if (bot.pos === 5 && !state.rightDoor) jumpscare();
+                // If blocked, go back to stage
+                if (bot.pos === 4 && state.leftDoor) bot.pos = 0;
+                if (bot.pos === 5 && state.rightDoor) bot.pos = 0;
             }
         }
-    }
-}, 5000);
+    });
+}
 
-function triggerJumpscare() {
+function jumpscare() {
     document.getElementById('jumpscare').style.display = 'flex';
-    setTimeout(() => location.reload(), 2000);
+    setTimeout(() => location.reload(), 3000);
 }
 
-// --- GAME LOOP ---
-function updateUsage() {
-    let u = 1;
-    if(state.leftDoor) u++;
-    if(state.rightDoor) u++;
-    if(state.camOpen) u++;
-    state.usage = u;
-    document.getElementById('usage-display').innerText = ">".repeat(u);
-}
-
-document.getElementById('cam-toggle').onclick = () => {
+window.toggleCams = () => {
     state.camOpen = !state.camOpen;
-    document.getElementById('cam-overlay').style.display = state.camOpen ? 'block' : 'none';
+    document.getElementById('cam-view').style.display = state.camOpen ? 'block' : 'none';
     updateUsage();
 };
 
+function updateUsage() {
+    let u = 1;
+    if (state.leftDoor) u++;
+    if (state.rightDoor) u++;
+    if (state.camOpen) u++;
+    state.usage = u;
+    document.getElementById('usage-bars').innerText = "|".repeat(u);
+}
+
+// --- ENGINE LOOPS ---
 function animate() {
     requestAnimationFrame(animate);
     
-    // Smooth Look-around
-    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, -state.lookX, 0.05);
-    
-    // Flicker desk light
-    if(Math.random() > 0.98) deskLight.intensity = Math.random() * 20;
-    else deskLight.intensity = 15;
+    // Smooth Panning
+    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, state.targetRotation.y, 0.05);
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, state.targetRotation.x, 0.05);
 
+    // Light Flickering
+    if(Math.random() > 0.97) officeLight.intensity = Math.random() * 25;
+    
     renderer.render(scene, camera);
 }
 
 setInterval(() => {
     state.time++;
-    state.power -= (state.usage * 0.1);
+    state.power -= (state.usage * 0.15);
     document.getElementById('power-display').innerText = Math.floor(state.power) + "%";
     document.getElementById('time-display').innerText = (12 + Math.floor(state.time/60)) + ":00 AM";
-    if(state.power <= 0) location.reload();
-}, 1000);
+    if (state.power <= 0) location.reload();
+    updateAI();
+}, 2000);
 
+camera.position.set(0, 1, 3);
 animate();
+
+// Resize Handler
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
 </script>
 </body>
 </html>
