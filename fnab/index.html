@@ -1,24 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>FNAB TEST</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>FNAB – Mobile & PC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<style>
+  body {
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: monospace;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  #hud {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    display: flex;
+    gap: 15px;
+    font-size: 14px;
+  }
+
+  #office img,
+  #camImg {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+  }
+
+  button {
+    background: #111;
+    color: white;
+    border: 1px solid #444;
+    padding: 12px 18px;
+    font-size: 16px;
+  }
+
+  #camBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+  }
+
+  #cams {
+    position: fixed;
+    inset: 0;
+    background: black;
+    z-index: 20;
+    text-align: center;
+    display: none;
+  }
+
+  #camName {
+    margin: 10px;
+  }
+
+  .cam-controls button {
+    margin: 10px;
+  }
+</style>
 </head>
-<body style="margin:0;background:black;color:white;font-family:monospace;">
 
-<h1>FNAB LOADED ✅</h1>
+<body>
 
-<img
-  src="https://i.postimg.cc/kggq0tQY/no-Filter.webp"
-  style="width:100vw;height:100vh;object-fit:cover;"
-  onerror="this.style.display='none';document.body.innerHTML+='<p>IMAGE FAILED</p>';"
->
+<div id="hud">
+  <span id="time">12:00 AM</span>
+  <span id="power">Power: 100%</span>
+</div>
+
+<div id="office">
+  <img src="https://i.postimg.cc/kggq0tQY/no-Filter.webp" alt="Office">
+</div>
+
+<button id="camBtn">📷 CAMS</button>
+
+<div id="cams">
+  <h2 id="camName"></h2>
+  <img id="camImg">
+  <div class="cam-controls">
+    <button id="prevCam">◀</button>
+    <button id="nextCam">▶</button>
+    <button id="closeCam">✖</button>
+  </div>
+</div>
 
 <script>
-  console.log("JS RUNNING");
-  alert("FNAB SCRIPT RUNNING");
+  const timeEl = document.getElementById("time");
+  const powerEl = document.getElementById("power");
+  const camsUI = document.getElementById("cams");
+  const camImg = document.getElementById("camImg");
+  const camName = document.getElementById("camName");
+
+  let minutes = 0;
+  let power = 100;
+  let cam = 0;
+
+  const cams = [
+    { name: "CAM 1 – Nas", img: "https://i.postimg.cc/8zZPcbpB/no-Filter-4.webp" },
+    { name: "CAM 2 – Mikica", img: "https://i.postimg.cc/50LVB5JN/no-Filter-2.webp" },
+    { name: "CAM 3 – Lifter", img: "https://i.postimg.cc/QtGLdBT6/no-Filter-3.webp" }
+  ];
+
+  function updateCam() {
+    camImg.src = cams[cam].img;
+    camName.textContent = cams[cam].name;
+  }
+
+  document.getElementById("camBtn").onclick = () => {
+    camsUI.style.display = "block";
+    updateCam();
+  };
+
+  document.getElementById("closeCam").onclick = () => {
+    camsUI.style.display = "none";
+  };
+
+  document.getElementById("prevCam").onclick = () => {
+    cam = (cam - 1 + cams.length) % cams.length;
+    updateCam();
+  };
+
+  document.getElementById("nextCam").onclick = () => {
+    cam = (cam + 1) % cams.length;
+    updateCam();
+  };
+
+  setInterval(() => {
+    minutes++;
+    power = Math.max(0, power - 0.1);
+
+    const hour = 12 + Math.floor(minutes / 60);
+    const min = minutes % 60;
+
+    timeEl.textContent = `${hour}:${min.toString().padStart(2,"0")} AM`;
+    powerEl.textContent = `Power: ${power.toFixed(0)}%`;
+
+    if (minutes >= 360) {
+      alert("6:00 AM — YOU SURVIVED 😎");
+      location.reload();
+    }
+
+    if (power <= 0) {
+      document.body.innerHTML =
+        `<img src="https://i.postimg.cc/kggq0tQY/no-Filter.webp"
+              style="width:100vw;height:100vh;">`;
+    }
+  }, 1000);
 </script>
 
 </body>
-</html>
+  </html>
